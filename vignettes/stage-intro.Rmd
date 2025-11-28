@@ -1,0 +1,108 @@
+---
+title: "Introduction to the STAGE Model"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to the STAGE Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(stage)
+set.seed(1)
+```
+
+# Overview
+
+The **STAGE** model (**S**tate **T**ransition **A**nalysis via **G**enerative **E**stimation)  
+is a Bayesian generative classifier designed to estimate maturity or transition points  
+when each class distribution has:
+
+- a uniform (plateau) region,
+- a Gaussian tail,
+- a shared transition region controlled by:
+  - the transition point **m50**, and  
+  - the width **d**.
+
+STAGE can be fit for a single population or hierarchically for multiple populations.
+
+---
+
+# Fitting the model
+
+We simulate a simple dataset:
+
+```{r}
+N <- 200
+L <- 1000
+U <- 1500
+true_m50 <- 1250
+true_d   <- 100
+
+x <- runif(N, L, U)
+p <- plogis((x - true_m50) / (true_d/4))
+y <- rbinom(N, 1, p)
+```
+
+Fit the STAGE model:
+
+```{r}
+fit <- fit_stage(x, y, L = L, U = U, chains = 2, iter = 1000)
+fit
+```
+
+---
+
+# Extracting the transition point
+
+```{r}
+transition_point(fit)
+```
+
+This returns posterior summary statistics for the global transition point (`m50`).
+
+---
+
+# Prediction
+
+```{r}
+x_grid <- seq(L, U, length.out = 200)
+p_hat <- predict(fit, x_grid, type = "prob")
+
+plot(
+  x_grid, p_hat, type = "l",
+  xlab = "x", ylab = "P(mature)", las = 1
+)
+```
+
+---
+
+# Hierarchical model example
+
+```{r}
+group <- rep(c("A", "B"), each = N/2)
+
+fit2 <- fit_stage(x, y, group = group, L = L, U = U, chains = 2, iter = 1000)
+
+transition_point(fit2)
+```
+
+This yields both:
+
+- a global `m50`
+- population-specific `m50_pop[j]`.
+
+---
+
+# Conclusion
+
+This vignette demonstrated:
+
+- simulating data  
+- fitting the STAGE model  
+- extracting posterior transition points  
+- predicting maturity probabilities  
+- running a hierarchical model  
+
+Further extensions (HOF model, Bayesian LDA, plotting utilities)  
+will be added in future versions of **stage**.
