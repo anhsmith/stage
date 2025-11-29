@@ -46,7 +46,7 @@ y <- rbinom(N, 1, p)
 
 Fit the STAGE model:
 
-```{r}
+```{r fit-stage, eval=FALSE}
 fit <- fit_stage(x, y, L = L, U = U, chains = 2, iter = 1000)
 fit
 ```
@@ -55,7 +55,7 @@ fit
 
 # Extracting the transition point
 
-```{r}
+```{r eval=FALSE}
 transition_point(fit)
 ```
 
@@ -65,7 +65,7 @@ This returns posterior summary statistics for the global transition point (`m50`
 
 # Prediction
 
-```{r}
+```{r eval=FALSE}
 x_grid <- seq(L, U, length.out = 200)
 p_hat <- predict(fit, x_grid, type = "prob")
 
@@ -79,7 +79,7 @@ plot(
 
 # Hierarchical model example
 
-```{r}
+```{r eval=FALSE}
 group <- rep(c("A", "B"), each = N/2)
 
 fit2 <- fit_stage(x, y, group = group, L = L, U = U, chains = 2, iter = 1000)
