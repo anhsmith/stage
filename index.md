@@ -1,0 +1,168 @@
+# stage
+
+The **stage** package implements the **STAGE** model  
+(**S**tate **T**ransition **A**nalysis via **G**enerative
+**E**stimation),  
+a Bayesian generative classifier designed to estimate **transition
+points**  
+(e.g., length-at-maturity) when each class distribution contains:
+
+- a **plateau** (uniform region),
+- a **Gaussian tail**, and  
+- a shared **transition region** parameterised by  
+  a global transition point **m50** and a width **d**.
+
+The package currently provides:
+
+- [`fit_stage()`](https://anhsmith.github.io/stage/reference/fit_stage.md)
+  – fit the STAGE model (single or multiple populations)  
+- [`transition_point()`](https://anhsmith.github.io/stage/reference/transition_point.md)
+  – extract posterior summaries of m50  
+- [`predict.stage_fit()`](https://anhsmith.github.io/stage/reference/predict.stage_fit.md)
+  – predict class probabilities or labels  
+- [`stage_priors()`](https://anhsmith.github.io/stage/reference/stage_priors.md)
+  – helper to set priors  
+- [`get_cmdstan_model()`](https://anhsmith.github.io/stage/reference/get_cmdstan_model.md)
+  – internal Stan compiler helper
+
+Support for the HOF logistic model and Bayesian LDA will be added next.
+
+------------------------------------------------------------------------
+
+## Installation
+
+You need **cmdstanr** installed and CmdStan compiled:
+
+``` r
+install.packages("cmdstanr",
+  repos = c("https://mc-stan.org/r-packages/", getOption("repos"))
+)
+cmdstanr::install_cmdstan()   # run once
+```
+
+Then install `stage` from GitHub:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("YOUR_GITHUB_USERNAME/stage")
+```
+
+------------------------------------------------------------------------
+
+## Example
+
+``` r
+library(stage)
+
+set.seed(123)
+
+N <- 200
+L <- 1000
+U <- 1500
+true_m50 <- 1250
+true_d   <- 100
+
+# simulate data
+x <- runif(N, L, U)
+p <- plogis((x - true_m50) / (true_d / 4))
+y <- rbinom(N, 1, p)
+
+# fit STAGE model (single population)
+fit <- fit_stage(x, y, L = L, U = U, chains = 2, iter = 1000)
+fit
+```
+
+Extract the estimated transition point (`m50`):
+
+``` r
+transition_point(fit)
+```
+
+Prediction:
+
+``` r
+x_grid <- seq(L, U, length.out = 100)
+p_hat <- predict(fit, x_grid, type = "prob")
+
+plot(x_grid, p_hat, type = "l",
+     xlab = "x", ylab = "P(mature)", las = 1)
+```
+
+------------------------------------------------------------------------
+
+## Hierarchical model
+
+The same interface fits multiple populations:
+
+``` r
+group <- rep(c("A","B"), each = N/2)
+
+fit2 <- fit_stage(x, y, group = group, L = L, U = U)
+
+transition_point(fit2)
+```
+
+This returns:
+
+- global m50  
+- population-specific m50_pop\[1\], m50_pop\[2\], …
+
+------------------------------------------------------------------------
+
+## Model summary
+
+The STAGE model is a generative classifier tailor-made for  
+length-at-maturity and similar transition problems.
+
+Each class distribution consists of:
+
+- **Uniform plateau** (flat region)
+- **Gaussian decay/approach** into the transition zone
+- Shared parameters describing:
+  - `sigma_x` – Gaussian width  
+  - `d` – width of transition region  
+  - `m50` – location of transition
+
+For hierarchical fits:
+
+``` R
+m50_pop[j] = mu_m50 + z[j] * sigma_alpha
+```
+
+using non-centred parameterisation for robust sampling.
+
+------------------------------------------------------------------------
+
+## Development
+
+Tests:
+
+``` r
+devtools::test()
+```
+
+Documentation:
+
+``` r
+devtools::document()
+```
+
+Build README:
+
+``` r
+devtools::build_readme()
+```
+
+Upcoming features:
+
+- Reparameterised logistic (HOF) model  
+- Bayesian LDA model  
+- Posterior predictive classification  
+- Plotting utilities  
+- Full vignette
+
+------------------------------------------------------------------------
+
+## License
+
+MIT © Adam N. H. Smith

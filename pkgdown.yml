@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  stage-intro: stage-intro.html
+last_built: 2025-11-29T03:27Z
+urls:
+  reference: https://anhsmith.github.io/stage/reference
+  article: https://anhsmith.github.io/stage/articles
