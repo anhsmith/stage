@@ -16,8 +16,11 @@ Imports:
     stats
 Suggests: 
     cmdstanr,
+    testthat,
     ggplot2,
     knitr,
     rmarkdown
+Remotes:
+    stan-dev/cmdstanr
 VignetteBuilder: knitr
 Config/Needs/website: pkgdown, knitr, rmarkdown
