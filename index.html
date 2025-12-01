@@ -18,7 +18,6 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Models for Estimating Stage-Transition Points">
 <meta name="description" content="The STAGE package implements Bayesian models for estimating transition points between two classes. The model developed specifically in this package is the STAGE model (State Transition Analysis via Generative Estimator), which fits a uniform (plateau) region and a Gaussian tail to each maturity stage. Other models offered include the HOF parameterisation of logistic regression, and Linear Discriminant Analysis (all Bayesian). The package provides functions for fitting single-population and hierarchical models, extracting posterior transition points (m50), producing predictions, and summarising uncertainty. The methods are designed for applications such as maturity estimation and other problems involving class overlap and asymmetric distributions.">
 <meta property="og:description" content="The STAGE package implements Bayesian models for estimating transition points between two classes. The model developed specifically in this package is the STAGE model (State Transition Analysis via Generative Estimator), which fits a uniform (plateau) region and a Gaussian tail to each maturity stage. Other models offered include the HOF parameterisation of logistic regression, and Linear Discriminant Analysis (all Bayesian). The package provides functions for fitting single-population and hierarchical models, extracting posterior transition points (m50), producing predictions, and summarising uncertainty. The methods are designed for applications such as maturity estimation and other problems involving class overlap and asymmetric distributions.">
-<meta property="og:image" content="https://anhsmith.github.io/stage/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -38,7 +37,14 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/why-stage.html">Why STAGE?</a></li>
+    <li><a class="dropdown-item" href="articles/likelihood.html">The STAGE Likelihood</a></li>
+    <li><a class="dropdown-item" href="articles/fit-stage.html">Fitting STAGE</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="external-link nav-link" href="https://mc-stan.org">Stan</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -52,10 +58,8 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="id_-stage-">📦 stage <a class="anchor" aria-label="anchor" href="#id_-stage-"></a>
-</h1>
-</div>
+<div class="page-header"><h1 id="id_-stage-">📦 stage <img src="reference/figures/logo.png" align="right" width="120"><a class="anchor" aria-label="anchor" href="#id_-stage-"></a>
+</h1></div>
 <p>The <strong>stage</strong> package implements the <strong>STAGE</strong> model (<strong>S</strong>tate <strong>T</strong>ransition <strong>A</strong>nalysis via <strong>G</strong>enerative <strong>E</strong>stimator), a Bayesian generative classifier for estimating <strong>transition points (m50)</strong> from two groups—at what value of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> does <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y=1</annotation></semantics></math> become probable. An example is <em>length-at-maturity</em> problems, where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math> is binary maturity status, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> is a continuous measurement, such as length.</p>
 <p>Existing methods for these sorts of applications have important limitations (see below), which the STAGE model overcomes.</p>
 <p>Features of the STAGE model are:</p>

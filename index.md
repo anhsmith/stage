@@ -1,4 +1,4 @@
-# 📦 stage
+# 📦 stage ![](reference/figures/logo.png)
 
 The **stage** package implements the **STAGE** model (**S**tate
 **T**ransition **A**nalysis via **G**enerative **E**stimator), a

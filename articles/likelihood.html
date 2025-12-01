@@ -35,7 +35,14 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/why-stage.html">Why STAGE?</a></li>
+    <li><a class="dropdown-item" href="../articles/likelihood.html">The STAGE Likelihood</a></li>
+    <li><a class="dropdown-item" href="../articles/fit-stage.html">Fitting STAGE</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="external-link nav-link" href="https://mc-stan.org">Stan</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -53,7 +60,8 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>The STAGE Likelihood</h1>
+
+      <h1>The STAGE Likelihood</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/anhsmith/stage/blob/master/vignettes/likelihood.Rmd" class="external-link"><code>vignettes/likelihood.Rmd</code></a></small>
@@ -79,12 +87,28 @@ distribution for key parameter
 representing the value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 at which the probabilities
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Pr(y=0)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y=0)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y=1)</annotation></semantics></math>
 are equal. The model can also be used to derive other useful quantities
 (such as class probabilities
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y = 1 \mid x)</annotation></semantics></math>).</p>
+<p>Conceptually, STAGE is a <strong>Bayesian generative
+classifier</strong> for estimating a transition point (e.g. length at
+maturity). Each class is fit with an asymmetric
+<strong>plateau–Gaussian</strong> density:</p>
+<ul>
+<li>the lower class has a <strong>uniform plateau</strong> followed by a
+<strong>Gaussian tail down into the transition</strong>,<br>
+</li>
+<li>the higher class has a <strong>Gaussian tail up out of the
+transition</strong> followed by a <strong>uniform plateau</strong>.</li>
+</ul>
+<p><img src="likelihood_files/figure-html/visualize-1.png" class="r-plt" width="576"></p>
+<p>This construction focuses inference on the <strong>overlap
+region</strong> and prevents distant observations (e.g. very small
+immatures, very large matures) from unduly influencing the transition
+point.</p>
 <p>The central idea is to model each class with a <strong>piecewise
 density</strong> that combines a <strong>uniform plateau</strong> in
 regions far from the transition, and a <strong>Gaussian tail</strong> in
@@ -104,11 +128,12 @@ truncation value
 <p>The model focuses inference on the <strong>transition zone</strong>,
 where the values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-of the two classes overlap, thereby limiting the influence of
-observations that are biologically uninformative because they are far
-away from the transition point.</p>
-<p>The PDF of the uniform-Gaussian used here was modified from the PDF
-uniform and two Guassians described by Lau &amp; Krumscheid <span class="citation">(2022)</span>.</p>
+of the two classes overlap, and down-weights observations that are
+biologically uninformative because they are far away from the transition
+point.</p>
+<p>The uniform–Gaussian pdf used here is adapted from a plateau proposal
+distribution combining a uniform and two Gaussians described by Lau
+&amp; Krumscheid <span class="citation">(2022)</span>.</p>
 </div>
 <div class="section level2">
 <h2 id="model-summary">Model summary<a class="anchor" aria-label="anchor" href="#model-summary"></a>
@@ -170,7 +195,8 @@ and
 (the width of the transition region),</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
-controls the spread (standard deviation) of the Gaussian tails.</li>
+(denoted <code>sigma_x</code> in the Stan code) controls the spread
+(standard deviation) of the Gaussian tails.</li>
 </ul>
 <p>By allowing different behaviours on either side of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
@@ -192,40 +218,47 @@ classes.</li>
 <p>The likelihood is built from two <strong>unnormalised log-density
 functions</strong> for the two classes. We work on the log scale for
 numerical stability and then subtract log-normalising constants to
-ensure valid densities.</p>
+obtain valid densities.</p>
 <p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_0(x)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>ℓ</mo><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell_0(x)</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_1(x)</annotation></semantics></math>
-denote the unnormalised densities for the two classes.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>ℓ</mo><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell_1(x)</annotation></semantics></math>
+denote the unnormalised log-densities for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y = 1</annotation></semantics></math>,
+respectively. The corresponding (unnormalised) densities are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>f</mi><mo accent="true">̃</mo></mover><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mo stretchy="false" form="prefix">{</mo><msub><mo>ℓ</mo><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\tilde f_k(x) = \exp\{\ell_k(x)\}</annotation></semantics></math>.</p>
+<p>We restrict attention to the truncated interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>;
+the densities are zero outside this range.</p>
 <div class="section level3">
 <h3 id="lower-class-y-0">Lower class
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y = 0</annotation></semantics></math>)<a class="anchor" aria-label="anchor" href="#lower-class-y-0"></a>
 </h3>
 <p>For
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y_i = 0</annotation></semantics></math>,
-the unnormalised piecewise log-density is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mo>,</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><mi>σ</mi><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&lt;</mo><mi>L</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>L</mi><mo>≤</mo><msub><mi>x</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>μ</mi><mn>0</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo>−</mo><mfrac displaystyle="true"><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&gt;</mo><msub><mi>μ</mi><mn>0</mn></msub></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
-f(x_i \mid y_i = 0, \mu_0, \sigma, L) =
+the unnormalised piecewise log-density is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>ℓ</mo><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><mi>σ</mi><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>L</mi><mo>≤</mo><msub><mi>x</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo>−</mo><mfrac displaystyle="true"><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&gt;</mo><msub><mi>μ</mi><mn>0</mn></msub><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\ell_0(x_i \mid \mu_0, \sigma, L) =
 \begin{cases}
-0 &amp; \text{if } x_i &lt; L \\
-1 &amp; \text{if } L \leq x_i \leq \mu_0 \\
--\dfrac{(x_i - \mu_0)^2}{2\sigma^2} &amp; \text{if } x_i &gt; \mu_0
+0 &amp; \text{if } L \leq x_i \leq \mu_0, \\
+-\dfrac{(x_i - \mu_0)^2}{2\sigma^2} &amp; \text{if } x_i &gt; \mu_0 .
 \end{cases}
 </annotation></semantics></math></p>
 <p>Here:</p>
 <ul>
 <li>the plateau region
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, \mu_0]</annotation></semantics></math>
-has constant (log-)density 1,<br>
-</li>
+has constant log-density 0 (density 1),</li>
 <li>the tail region
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&gt;</mo><msub><mi>μ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">x_i &gt; \mu_0</annotation></semantics></math>
 decays according to a Gaussian kernel.</li>
 </ul>
-<p>In implementation, this is treated as an <strong>unnormalised
-log-density</strong>; the overall density is recovered after subtracting
-a normalising constant.</p>
+<p>Any constant could be added to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>ℓ</mo><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ell_0(\cdot)</annotation></semantics></math>
+without changing the posterior; we fix the plateau at 0 so that the
+plateau density is 1 after exponentiation.</p>
 </div>
 <div class="section level3">
 <h3 id="higher-class-y-1">Higher class
@@ -233,13 +266,12 @@ a normalising constant.</p>
 </h3>
 <p>For
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y_i = 1</annotation></semantics></math>,
-the unnormalised piecewise log-density is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mo>,</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><mi>σ</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mo>−</mo><mfrac displaystyle="true"><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&lt;</mo><msub><mi>μ</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>μ</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>x</mi><mi>i</mi></msub><mo>≤</mo><mi>U</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&gt;</mo><mi>U</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
-f(x_i \mid y_i = 1, \mu_1, \sigma, U) =
+the unnormalised log-density is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>ℓ</mo><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><mi>σ</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mo>−</mo><mfrac displaystyle="true"><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&lt;</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>μ</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>x</mi><mi>i</mi></msub><mo>≤</mo><mi>U</mi><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\ell_1(x_i \mid \mu_1, \sigma, U) =
 \begin{cases}
--\dfrac{(x_i - \mu_1)^2}{2\sigma^2} &amp; \text{if } x_i &lt; \mu_1 \\
-1 &amp; \text{if } \mu_1 \leq x_i \leq U \\
-0 &amp; \text{if } x_i &gt; U
+-\dfrac{(x_i - \mu_1)^2}{2\sigma^2} &amp; \text{if } x_i &lt; \mu_1, \\
+0 &amp; \text{if } \mu_1 \leq x_i \leq U .
 \end{cases}
 </annotation></semantics></math></p>
 <p>Now:</p>
@@ -251,28 +283,43 @@ and<br>
 <li>the plateau covers the upper region
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[\mu_1, U]</annotation></semantics></math>.</li>
 </ul>
-<p>In both cases, we are effectively using a
-<strong>plateau–Gaussian</strong> mixture: a flat density where the
-class “dominates” and a Gaussian shape in the transition region where
-the other class is present.</p>
+<p>In both cases we have a <strong>plateau–Gaussian</strong> shape: a
+flat density where the class “dominates” and a Gaussian tail in the
+transition region where the other class is present.</p>
 </div>
 <div class="section level3">
 <h3 id="normalisation-constants">Normalisation constants<a class="anchor" aria-label="anchor" href="#normalisation-constants"></a>
 </h3>
-<p>To convert the unnormalised densities into proper probability density
-functions (pdf), we divide by constants
+<p>To convert
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>f</mi><mo accent="true">̃</mo></mover><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mo stretchy="false" form="prefix">{</mo><msub><mo>ℓ</mo><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\tilde f_k(x) = \exp\{\ell_k(x)\}</annotation></semantics></math>
+into proper probability density functions on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>,
+we divide by constants
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>0</mn></msub><annotation encoding="application/x-tex">C_0</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>1</mn></msub><annotation encoding="application/x-tex">C_1</annotation></semantics></math>
-chosen such that the densities integrate to 1 over
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>.</p>
-<p>For the immature class, the normalising constant is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>0</mn></msub><mo>=</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>−</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-C_0 = \frac{\sqrt{2\pi} \, \sigma}{2} + (\mu_0 - L).
+chosen so that the densities integrate to 1.</p>
+<p>For the immature class
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y = 0</annotation></semantics></math>):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>0</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mi>L</mi><msub><mi>μ</mi><mn>0</mn></msub></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>0</mn></msub><mi>∞</mi></msubsup><mfrac><mn>1</mn><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mi>σ</mi></mrow></mfrac><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>−</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C_0
+= \int_L^{\mu_0} 1 \, dx
+  + \int_{\mu_0}^{\infty}
+    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+      -\frac{(x - \mu_0)^2}{2\sigma^2}
+    \right) dx
+= (\mu_0 - L) + \frac{\sqrt{2\pi}\,\sigma}{2}.
 </annotation></semantics></math></p>
-<p>For the mature class, the normalising constant is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo>=</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-C_1 = \frac{\sqrt{2\pi} \, \sigma}{2} + (U - \mu_1).
+<p>For the mature class
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y = 1</annotation></semantics></math>):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><msub><mi>μ</mi><mn>1</mn></msub></msubsup><mfrac><mn>1</mn><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mi>σ</mi></mrow></mfrac><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>1</mn></msub><mi>U</mi></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>=</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C_1
+= \int_{-\infty}^{\mu_1}
+    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+      -\frac{(x - \mu_1)^2}{2\sigma^2}
+    \right) dx
+  + \int_{\mu_1}^{U} 1 \, dx
+= \frac{\sqrt{2\pi}\,\sigma}{2} + (U - \mu_1).
 </annotation></semantics></math></p>
 <p>Intuitively:</p>
 <ul>
@@ -286,48 +333,38 @@ are the <strong>widths of the uniform plateaus</strong>,<br>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\sqrt{2\pi}\,\sigma / 2</annotation></semantics></math>
 is the <strong>contribution from the half-Gaussian tail</strong>.</li>
 </ul>
-<p>The <strong>log-likelihood contributions</strong> for each
-observation are then:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><msub><mi>ℒ</mi><mi>i</mi></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mo>log</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mo>log</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
-\log \mathcal{L}_i \;=\;
+<p>The corresponding <strong>log-likelihood contribution</strong> for
+observation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><msub><mi>ℒ</mi><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><msub><mo>ℓ</mo><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><mn>0</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mo>ℓ</mo><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\log \mathcal{L}_i =
 \begin{cases}
-\log f(x_i) - \log C_0 &amp; \text{if } y_i = 0 \\
-\log f(x_i) - \log C_1 &amp; \text{if } y_i = 1.
+\ell_0(x_i) - \log C_0 &amp; \text{if } y_i = 0, \\
+\ell_1(x_i) - \log C_1 &amp; \text{if } y_i = 1.
 \end{cases}
 </annotation></semantics></math></p>
-</div>
-<div class="section level3">
-<h3 id="full-log-likelihood">Full log-likelihood<a class="anchor" aria-label="anchor" href="#full-log-likelihood"></a>
-</h3>
-<p>Summing over all observations, the joint log-likelihood is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>∣</mo><msub><mi>m</mi><mn>50</mn></msub><mo>,</mo><mi>d</mi><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mrow><mo stretchy="true" form="prefix">[</mo><mo>log</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>y</mi><mi>i</mi></msub><mo>,</mo><msub><mi>μ</mi><msub><mi>y</mi><mi>i</mi></msub></msub><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><msub><mi>y</mi><mi>i</mi></msub></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\log p(x, y \mid m_{50}, d, \sigma) \;=\;
+<p>Summing over all observations,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>∣</mo><msub><mi>m</mi><mn>50</mn></msub><mo>,</mo><mi>d</mi><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><msub><mo>ℓ</mo><msub><mi>y</mi><mi>i</mi></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>C</mi><msub><mi>y</mi><mi>i</mi></msub></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\log p(x, y \mid m_{50}, d, \sigma)
+=
 \sum_{i=1}^{N}
-\left[
-  \log f(x_i \mid y_i, \mu_{y_i}, \sigma)
-  - \log C_{y_i}
-\right],
+\big[
+  \ell_{y_i}(x_i) - \log C_{y_i}
+\big],
 </annotation></semantics></math></p>
-<p>where</p>
-<ul>
-<li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
-is the appropriate unnormalised density for class
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>,
-and<br>
-</li>
-<li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><msub><mi>y</mi><mi>i</mi></msub></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>C</mi><mn>0</mn></msub><mo>,</mo><msub><mi>C</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">C_{y_i} \in \{C_0, C_1\}</annotation></semantics></math>
-is the normalising constant for that class.</li>
-</ul>
+<p>which is exactly the likelihood implemented in the Stan code used by
+<code><a href="../reference/fit_stage.html">fit_stage()</a></code>.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="prior-specification">Prior specification<a class="anchor" aria-label="anchor" href="#prior-specification"></a>
 </h2>
 <p>The priors reflect prior beliefs about plausible transition points
-and transition widths in typical length-at-maturity problems (but can be
-changed by the user).</p>
+and transition widths in typical length-at-maturity problems. In
+practice, these are <strong>defaults</strong> that should be adapted to
+the scale of the data and prior biological knowledge.</p>
+<p>By default, STAGE uses weakly informative normal priors:</p>
 <ul>
 <li>
 <strong>Transition point</strong>
@@ -347,11 +384,14 @@ uncertainty.</p>
 d \sim \mathcal{N}(100, 100),
 </annotation></semantics></math></p>
 <p>which allows the width of the overlap region to vary around 100 units
-with a wide spread.</p>
+with a wide spread. Note that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+is the distance between the class-specific Gaussian centres.</p>
 <ul>
 <li>
 <strong>Gaussian spread</strong>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>:</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+(Stan parameter <code>sigma_x</code>):</li>
 </ul>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>100</mn><mo>,</mo><mn>50</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \sigma \sim \mathcal{N}(100, 50),
@@ -360,8 +400,8 @@ with a wide spread.</p>
 transition tails.</p>
 <p>In practice, you should adapt these priors to your scale (e.g.,
 lengths, ages) and prior biological knowledge. The STAGE implementation
-allows you to pass in hyperparameters via helper functions
-(e.g. <code><a href="../reference/stage_priors.html">stage_priors()</a></code>).</p>
+allows you to pass in hyperparameters via helper functions such as
+<code><a href="../reference/stage_priors.html">stage_priors()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="transformed-parameters">Transformed parameters<a class="anchor" aria-label="anchor" href="#transformed-parameters"></a>
@@ -405,7 +445,11 @@ densities</strong><br><math display="inline" xmlns="http://www.w3.org/1998/Math/
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_1(x) = p(x \mid y = 1)</annotation></semantics></math>
 on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>,
+obtained by normalising the unnormalised densities
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>f</mi><mo accent="true">̃</mo></mover><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mo stretchy="false" form="prefix">{</mo><msub><mo>ℓ</mo><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\tilde f_k(x) = \exp\{\ell_k(x)\}</annotation></semantics></math>
+with the constants
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>k</mi></msub><annotation encoding="application/x-tex">C_k</annotation></semantics></math>.</p>
 <p>To obtain the probability that an individual with a particular
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 value is in the higher class
@@ -445,10 +489,10 @@ prediction, and they are what you see when you plot
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y = 1 \mid x)</annotation></semantics></math>
 as a function of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</p>
-<div class="section level4">
-<h4 id="connection-to-m_50">Connection to
+<div class="section level3">
+<h3 id="connection-to-m_50">Connection to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math><a class="anchor" aria-label="anchor" href="#connection-to-m_50"></a>
-</h4>
+</h3>
 <p>By definition, the transition point
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
 is the value of
@@ -480,7 +524,7 @@ via<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semanti
 \mu_1 = m_{50} + \frac{d}{2},
 </annotation></semantics></math>
 </li>
-<li>As the <strong>Bayes classifier cut-point</strong> where the
+<li>As the <strong>Bayes-optimal classifier cut-point</strong> where the
 posterior class probabilities for immature and mature are both 0.5.</li>
 </ol>
 <p>In practice, the STAGE model samples
@@ -499,61 +543,17 @@ This makes the interpretation of
 as a “50% maturity” transition point directly linked to the underlying
 generative model and Bayes-optimal classifier.</p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="advantages-of-the-stage-likelihood">Advantages of the STAGE likelihood<a class="anchor" aria-label="anchor" href="#advantages-of-the-stage-likelihood"></a>
-</h2>
-<ol style="list-style-type: decimal">
-<li>
-<p><strong>Piecewise densities</strong></p>
-<p>The plateau–Gaussian form naturally captures situations where
-individuals in one class (e.g., immatures) are approximately uniform
-over a wide region, but then decline gradually into the transition.
-Similarly for the mature class. This is more realistic than assuming a
-global Gaussian for each class.</p>
-</li>
-<li>
-<p><strong>Focus on the transition region</strong></p>
-<p>Because only the Gaussian tails enter the overlap region, the
-estimation of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-is driven by observations near the transition. Distant observations
-(e.g., very small immatures, very large matures) mainly contribute
-through the uniform plateau and therefore do not distort the transition
-point.</p>
-</li>
-<li>
-<p><strong>Flexibility via
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math></strong></p>
-<p>The parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
-controls the width of the transition zone, allowing the model to capture
-anything from very sharp to very gradual transitions.</p>
-</li>
-<li>
-<p><strong>Bayesian inference</strong></p>
-<p>A fully Bayesian treatment:</p>
+<div class="section level3">
+<h3 id="visualising-a-single-stage-transition">Visualising a single STAGE transition<a class="anchor" aria-label="anchor" href="#visualising-a-single-stage-transition"></a>
+</h3>
+<p>We can visualise a simple STAGE configuration, showing:</p>
 <ul>
-<li>incorporates prior knowledge (e.g., plausible ranges for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>),<br>
-</li>
-<li>provides full posterior uncertainty for all parameters,<br>
-</li>
-<li>extends naturally to <strong>hierarchical models</strong> with
-multiple populations.</li>
+<li>the immature and mature densities, and</li>
+<li>the resulting transition probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y=1 \mid x)</annotation></semantics></math>.</li>
 </ul>
-</li>
-<li>
-<p><strong>Proper normalisation</strong></p>
-<p>The explicit normalising constants
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>0</mn></msub><annotation encoding="application/x-tex">C_0</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>1</mn></msub><annotation encoding="application/x-tex">C_1</annotation></semantics></math>
-ensure that each class-conditional density is a valid pdf. This is
-crucial for stable inference in Stan and for interpreting posterior
-predictions as probabilities.</p>
-</li>
-</ol>
+<p><img src="likelihood_files/figure-html/visualize-likelihood-1.png" class="r-plt" width="576"></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="relationship-to-the-stage-implementation">Relationship to the <code>stage</code> implementation<a class="anchor" aria-label="anchor" href="#relationship-to-the-stage-implementation"></a>
