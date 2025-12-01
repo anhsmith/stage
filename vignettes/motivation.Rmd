@@ -1,0 +1,754 @@
+---
+title: "Motivation"
+output: rmarkdown::html_vignette
+bibliography: ../inst/references/ref.bib
+vignette: >
+  %\VignetteIndexEntry{Motivation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(stage)
+library(tidyverse)
+set.seed(1)
+```
+
+# The goal
+
+Estimating a transition point between two classes—the point along a continuous variable \(x\) where the probability shifts from one class to the other for binary variable \(y\)—is a simple and common task. For example, the length at which individuals of a species shifts from immature to mature is an important life-history parameter. 
+
+Given the data below, we can easily identify a broad "transition _zone_", where the transition from class 0 to class 1 takes place. However, a more specific goal is to estimate the "transition _point_", or \(m_{50}\)—the value of \(x\) where the probability of being in class 1 reaches 50%. 
+
+\(\hat{m}_{50} = \{x : \widehat{\Pr}(y = 1 \mid x) = 0.5\}\)
+
+In maturity studies, this point might be called "length at maturity". To the left of \(m_{50}\), class 0 is more likely; to the right of \(m_{50}\), class 1 is more likely. 
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+set.seed(12)
+
+# Simulate x uniformly over its domain
+n <- 300
+dat <- tibble(
+  x = runif(n, min = 0, max = 1)
+) |>
+  # Logistic transition from 0 to 1 in the middle of x
+  mutate(
+    p = plogis(20 * (x - 0.5)),         # centre at 0.5, fairly sharp transition
+    y = rbinom(n, size = 1, prob = p)   # 0/1 outcome
+  )
+
+# Compute "observed transition zone"
+y0_max <- .7
+y1_min <- .3
+
+# Midpoint for annotation
+x_mid <- .5
+
+p <- dat |> 
+  ggplot(aes(x = x, y = y, colour = factor(y))) +
+  # grey shaded overlap region
+  annotate(
+    "rect",
+    xmin = y0_max, xmax = y1_min,
+    ymin = -Inf, ymax = Inf,
+    fill = "grey80", alpha = 0.4
+  ) +
+  # label at the top of the plot
+  annotate(
+    "text",
+    x = x_mid, y = 1.5,
+    label = "Transition zone",
+    size = 4.5, colour = "grey30"
+  ) +
+  
+  # --- NEW: big black point representing m50 ---
+  annotate(
+    "point",
+    x = c(0.5,0.5), 
+    y = c(0.3, 0.7),
+    pch = "|",
+    size = 4, colour = "black"
+  ) +
+  annotate(
+    "text",
+    x = 0.5, y = 0.5,
+    label = expression(italic(m)[50]),
+    size = 5,
+    colour = "black",
+    family = "serif"
+  ) +
+  
+  geom_jitter(height = 0.08, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(
+    values = c("0" = "#00BFC4", "1" = "#F8766D"),
+    name = "Class"
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 1),
+    labels = c("0", "1"),
+    name = "Class (y)",
+    limits = c(-0.4, 1.7)   # ensure space above class 1 for the label
+  ) +
+  theme(
+    axis.title.y = element_text(vjust = 0.5)
+  ) +
+  
+  scale_x_continuous(
+    name = "Continuous variable (x)",
+    breaks = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank(),        # remove all gridlines
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+    )
+
+p
+```
+
+# Problems with existing methods
+
+The statistical methods typically applied to this task are based on inappropriate assumptions and likely produce biased estimates of transition points.
+
+Below, we discuss three current approaches, highlighting the limitations of each. 
+
+## Ad hoc midpoint methods
+
+A common approach is to avoid fitting a model altogether and instead compute a transition point directly from the data. 
+One such method is to take the midpoint between the smallest mature and largest immature individuals. 
+The advantage of this approach is that it focuses on the transition zone only. 
+However, this approach (1) has no probabilistic foundation and so cannot quantify uncertainty, and 
+(2) uses only two data points, so has high variance.
+
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+
+# Ad hoc midpoint method:
+
+#   largest immature and smallest mature, plus their midpoint
+x_imm_max <- max(dat$x[dat$y == 0])
+x_mat_min <- min(dat$x[dat$y == 1])
+x_mid     <- (x_imm_max + x_mat_min) / 2
+
+# For highlighting the two defining points
+imm_point <- dat |> filter(y == 0, x == x_imm_max) |> slice(1)
+mat_point <- dat |> filter(y == 1, x == x_mat_min) |> slice(1)
+
+p_midpoint <- dat |> 
+  ggplot(aes(x = x, y = y, colour = factor(y))) +
+
+  # vertical markers for the two defining data points
+  annotate(
+    "point",
+    x = x_mat_min,
+    y = 1,
+    pch = "|",
+    size = 8, colour = "#F8766D"
+  ) +
+  annotate(
+    "point",
+    x = x_imm_max,
+    y = 0,
+    pch = "|",
+    size = 8, colour = "#00BFC4"
+  ) +
+  
+  # midpoint estimate m_50 (mid)
+  annotate(
+    "segment",
+    x = x_mid,
+    xend = x_mid, 
+    y = -0.2, 
+    yend = 1.2,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  annotate(
+    "text",
+    x = x_mid, y = 1.4,
+    label = "midpoint",
+    size = 4,
+    colour = "black"
+  ) +
+  
+  annotate(
+    "segment",
+    arrow = arrow(length = unit(0.03, "npc")),
+    x = x_mid,
+    xend = x_imm_max, 
+    y = 0, 
+    yend = 0,
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  annotate(
+    "segment",
+    arrow = arrow(length = unit(0.03, "npc")),
+    x = x_mid,
+    xend = x_mat_min, 
+    y = 1, 
+    yend = 1,
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  geom_jitter(height = 0.08, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(
+    values = c("0" = "#00BFC4", "1" = "#F8766D"),
+    name = "Class"
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 1),
+    labels = c("0", "1"),
+    name = "Class (y)",
+    limits = c(-0.4, 1.7)
+  ) +
+  scale_x_continuous(
+    name = "Continuous variable (x)",
+    breaks = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank()
+  )
+
+p_midpoint
+```
+
+## Discriminative models (e.g., logistic regression) 
+
+Discriminative models such as logistic regression estimate the conditional probability 
+$P(y = 1 \mid x)$ _directly_. 
+In other words, the model focuses on predicting class labels based on the 
+prevalence of one class vs another at each value of $x$. 
+
+In logistic regression, a logistic curve is fit to the data, and the estimate of the transition point \(m_{50}\) is defined as the value of \(x\) where the fitted probability equals 0.5.
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+
+# Fit logistic regression
+fit_logit <- glm(y ~ x, family = binomial, data = dat)
+
+# Fitted probabilities on a grid
+grid <- tibble(x = seq(0, 1, length.out = 200)) |>
+  mutate(p_hat = predict(fit_logit, newdata = cur_data_all(), type = "response"))
+
+# Logistic m50 (where fitted p = 0.5)
+b0 <- coef(fit_logit)[1]
+b1 <- coef(fit_logit)[2]
+m50_hat <- -b0 / b1
+
+p_logit <- dat |>
+  ggplot(aes(x = x, y = y, colour = factor(y))) +
+  
+  # logistic curve
+  geom_line(
+    data = grid,
+    aes(x = x, y = p_hat),
+    inherit.aes = FALSE,
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  # vertical dashed line at logistic m50
+  annotate(
+    "segment",
+    x = m50_hat,
+    xend = m50_hat,
+    y = -0.2,
+    yend = 1.2,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  # label at the top of the line
+  annotate(
+    "text",
+    x = m50_hat, y = 1.4,
+    label = expression(hat(italic(m))[50]),
+    size = 5,
+    colour = "black",
+    family = "serif"
+  ) +
+  
+  geom_jitter(height = 0.08, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(
+    values = c("0" = "#00BFC4", "1" = "#F8766D"),
+    name = "Class"
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 1),
+    labels = c("0", "1"),
+    name = "Class (y)",
+    limits = c(-0.4, 1.7)
+  ) +
+  scale_x_continuous(
+    name = "Continuous variable (x)",
+    breaks = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank()
+  )
+
+p_logit
+
+
+```
+
+
+
+While simple and familiar, *logistic regression (and other discriminative models) are highly sensitive to class imbalance*. 
+The discriminative model estimates the probability of class in the sample, not the population. 
+
+Unless sampling is independent of both class and size, the estimated curve can be seriously biased. 
+If one class has a much greater sample size than the other (i.e., they are unbalanced), 
+logistic regression effectively places more weight on the more abundant class. 
+This pulls the estimated transition curve toward the majority class, 
+even though class counts should not determine where the transition occurs.
+
+In the plot below, 85% of the class 0 observations have been removed, resulting a highly imbalanced dataset and a biased estimate of \(m_{50}\).
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+set.seed(123)
+
+# Imbalanced dataset (keep 20% of y = 0)
+dat_imbal <- bind_rows(
+  dat |> filter(y == 1),
+  dat |> filter(y == 0) |> slice_sample(prop = 0.2)
+)
+
+# Fit logistic regression to imbalanced data only
+fit_logit_imbal <- glm(y ~ x, family = binomial, data = dat_imbal)
+
+# Predict imbalanced probabilities
+grid_imbal <- tibble(x = seq(0, 1, length.out = 200)) |>
+  mutate(p_hat = predict(fit_logit_imbal, newdata = cur_data_all(), type = "response"))
+
+b0_i <- coef(fit_logit_imbal)[1]
+b1_i <- coef(fit_logit_imbal)[2]
+m50_imbal <- -b0_i / b1_i
+
+# --- PLOT using PREVIOUS estimates for reference ---
+p_logit_imbal <- dat_imbal |>
+  ggplot(aes(x = x, y = y, colour = factor(y))) +
+
+  # PREVIOUS logistic curve (grey)
+  geom_line(
+    data = grid,                    # <--- reused from previous chunk
+    aes(x = x, y = p_hat),
+    inherit.aes = FALSE,
+    linewidth = 1,
+    colour = "grey70"
+  ) +
+
+  # PREVIOUS m50 (grey)
+  annotate(
+    "segment",
+    x = m50_hat, xend = m50_hat,    # <--- reused from previous chunk
+    y = -0.2, yend = 1.2,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "grey70"
+  ) +
+
+  # Imbalanced curve (black)
+  geom_line(
+    data = grid_imbal,
+    aes(x = x, y = p_hat),
+    inherit.aes = FALSE,
+    linewidth = 1,
+    colour = "black"
+  ) +
+
+  # Arrow showing shift from old --> new m50
+  annotate(
+    "segment",
+    x = m50_hat,
+    xend = m50_imbal,
+    y = 0.5, yend = 0.5,
+    colour = "grey60",
+    linewidth = 1,
+    arrow = arrow(length = unit(0.03, "npc"))
+  ) +
+    
+  # Imbalanced m50 (black)
+  annotate(
+    "segment",
+    x = m50_imbal, xend = m50_imbal,
+    y = -0.2, yend = 1.2,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "black"
+  ) +
+
+  # Label at top
+  annotate(
+    "text",
+    x = m50_imbal, y = 1.4,
+    label = "Biased estimate\ndue to imbalance",
+    size = 3.5,
+    colour = "black"
+  ) +
+
+  geom_jitter(height = 0.08, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(values = c("0"="#00BFC4","1"="#F8766D")) +
+  scale_y_continuous(breaks = c(0,1), labels = c("0","1"),
+                     limits = c(-0.4,1.7), name = "Class (y)") +
+  scale_x_continuous(name = "Continuous variable (x)", breaks = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank()
+  )
+
+p_logit_imbal
+
+
+```
+
+
+An advantage of the discriminative-model approach (over other methods) is that 
+inferences about the transition point are based mainly on data near the transition zone.
+
+## Generative models (e.g., Linear Discriminant Analysis)
+
+Generative models (often called generative classifiers) are an alternative approach to discriminative models. 
+They model the class-conditional densities  
+
+$f(x \mid y = 0), \qquad f(x \mid y = 1)$, 
+
+and then obtain $P(y=1 \mid x)$ _via_ Bayes’ rule (usually applied with equal prior probabilities).
+
+As with discriminative models, the estimate of \(m_{50}\) is then defined as the value of \(x\) where the two class densities are equal, i.e., where \(f(x \mid y = 0) = f(x \mid y = 1)\).
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+# --- LDA generative densities, as before ---
+class_stats <- dat |>
+  group_by(y) |>
+  summarise(
+    mu = mean(x),
+    sd = sd(x),
+    n  = n(),
+    .groups = "drop"
+  )
+
+mu0 <- class_stats$mu[class_stats$y == 0]
+mu1 <- class_stats$mu[class_stats$y == 1]
+sd0 <- class_stats$sd[class_stats$y == 0]
+sd1 <- class_stats$sd[class_stats$y == 1]
+n0  <- class_stats$n[class_stats$y == 0]
+n1  <- class_stats$n[class_stats$y == 1]
+
+sigma_pooled <- sqrt(((n0 - 1) * sd0^2 + (n1 - 1) * sd1^2) / (n0 + n1 - 2))
+
+grid_lda <- tibble(x = seq(0, 1, length.out = 400)) |>
+  mutate(
+    d0 = dnorm(x, mean = mu0, sd = sigma_pooled),
+    d1 = dnorm(x, mean = mu1, sd = sigma_pooled)
+  )
+
+# scale densities to sit nicely above y = 0
+max_d     <- max(c(grid_lda$d0, grid_lda$d1))
+scale_fac <- 0.35 / max_d
+
+grid_lda <- grid_lda |>
+  mutate(
+    d0_scaled = d0 * scale_fac,
+    d1_scaled = d1 * scale_fac,
+    y0_min    = 0,
+    y0_max    = d0_scaled,
+    y1_min    = 0,
+    y1_max    = d1_scaled
+  )
+
+# LDA decision boundary (equal priors, equal variance)
+boundary_x <- (mu0 + mu1) / 2
+
+p_lda <- ggplot(dat, aes(x = x, y = 0, colour = factor(y))) +
+  # normal density areas at bottom
+  geom_ribbon(
+    data = grid_lda,
+    aes(x = x, ymin = y0_min, ymax = y0_max, fill = "0"),
+    inherit.aes = FALSE,
+    alpha = 0.25
+  ) +
+  geom_ribbon(
+    data = grid_lda,
+    aes(x = x, ymin = y1_min, ymax = y1_max, fill = "1"),
+    inherit.aes = FALSE,
+    alpha = 0.25
+  ) +
+  # dashed line where densities cross
+  annotate(
+    "segment",
+    x = boundary_x,
+    xend = boundary_x,
+    y = -0.05,
+    yend = 0.3,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  annotate(
+    "text",
+    x = boundary_x,
+    y = 0.34,
+    label = expression(hat(italic(m))[50]),
+    size = 4.5,
+    family = "serif",
+    colour = "black"
+  ) +
+
+  # points at y = 0 with jitter
+  geom_jitter(height = 0.04, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(values = c("0" = "#00BFC4", "1" = "#F8766D")) +
+  scale_fill_manual(values = c("0" = "#00BFC4", "1" = "#F8766D")) +
+  scale_y_continuous(name = NULL, breaks = NULL, limits = c(-0.1, 0.45)) +
+  scale_x_continuous(
+    name = "Continuous variable (x)",
+    breaks = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank(),
+    axis.title.y  = element_blank(),
+    axis.text.y   = element_blank(),
+    axis.ticks.y  = element_blank()
+  )
+
+p_lda
+
+```
+
+
+The generative classifier approach has the advantage of being less sensitive to 
+class imbalance, since the transition point estimate depends on the shapes of 
+the class distributions, not their relative sample sizes.
+This is achieved by fitting a density to each class separately, 
+and then calculating the transition point based on the relative densities of 
+the two classes. Linear Discriminant Analysis (LDA) is a widely used generative 
+classifier that fits a Gaussian (Normal) density to each class.
+
+
+
+This approach is less sensitive to class imbalance, they can suffer from another important limitation: 
+*estimates of transition points from LDA (and other generative models) are potentially influenced by all values of $x$, not just those near the transition zone*. 
+
+Observations far from the transition zone greatly affect the fitted density 
+for that class, and therefore have undue influence on the estimate of the 
+transition point. 
+For example, if the true transition is around 1000 mm, individuals at 200–400 mm 
+should not influence the estimate of the maturity transition.
+
+*In LDA, because symmetrical Gaussian distributions are fit to each class, 
+the behaviour of the tails near the transition are determined as much by the 
+very lowest and highest values of \(x\) as by those near the transition.*
+
+In the context of length-at-maturity, this means that very small immature 
+individuals (e.g., neonates) and very large mature individuals have as much
+influence on the transition point as individuals whose lengths fall near the 
+maturity boundary. This is unappealing, because these distant observations 
+contain almost no information about the location of the 
+transition, yet they shape the Gaussian fits and can shift the inferred transition 
+point substantially. 
+
+Furthermore, the two tails that actually matter for the transition—the upper 
+tail of the immature class and the lower tail of the mature class—are not 
+modelled directly against each other. Instead, each tail is constrained to be 
+the mirror image of the opposite tail of its own class 
+(because of the global, class-wise, Gaussian assumption).
+
+---
+
+# Summary 
+
+Data can be subject to all sorts of sampling biases, favouring one class over another, 
+or certain values of \(x\) over others. Often, these biases are unknown and uncontrollable. 
+These sampling biases can seriously distort estimates of transition points in known ways.
+
+Therefore, methods that are robust to these biases are needed.
+
+What is needed is a model for estimating transition points that:
+
+- is probabilistic and can quantify uncertainty,
+- robust to class imbalance, and
+- focuses inference on data in the overlap region rather than distant data.
+
+---
+
+# The STAGE solution
+
+The STAGE model is a Bayesian generative classifier where each class is fit with an **asymmetric Uniform–Gaussian mixture**.
+
+- **Immature (y = 0):**  
+  uniform plateau → Gaussian decay approaching the transition.
+- **Mature (y = 1):**  
+  Gaussian rise out of the transition → uniform plateau.
+
+
+```{r echo=FALSE, fig.width=6, fig.height=2.5}
+# --- STAGE-style generative densities (plateau + Gaussian tail) ---
+
+# Simple illustrative STAGE parameters
+L      <- 0
+U      <- 1
+m50_st <- 0.5   # "true" transition point for illustration
+d_st   <- 0.2   # width of transition region
+sigma  <- 0.08  # tail spread
+
+plateau_gauss_left <- function(x, m50, d, sigma, L) {
+  t0 <- m50 - d / 2
+  ifelse(
+    x < L, 0,
+    ifelse(
+      x <= t0, 1,
+      exp(-0.5 * ((x - t0) / sigma)^2)
+    )
+  )
+}
+
+plateau_gauss_right <- function(x, m50, d, sigma, U) {
+  t1 <- m50 + d / 2
+  ifelse(
+    x > U, 0,
+    ifelse(
+      x >= t1, 1,
+      exp(-0.5 * ((x - t1) / sigma)^2)
+    )
+  )
+}
+
+grid_stage <- tibble(x = seq(L, U, length.out = 400)) |>
+  mutate(
+    d0 = plateau_gauss_left(x,  m50_st, d_st, sigma, L),
+    d1 = plateau_gauss_right(x, m50_st, d_st, sigma, U)
+  )
+
+# scale densities to sit nicely above y = 0
+max_d     <- max(c(grid_stage$d0, grid_stage$d1))
+scale_fac <- 0.35 / max_d
+
+grid_stage <- grid_stage |>
+  mutate(
+    d0_scaled = d0 * scale_fac,
+    d1_scaled = d1 * scale_fac,
+    y0_min    = 0,
+    y0_max    = d0_scaled,
+    y1_min    = 0,
+    y1_max    = d1_scaled
+  )
+
+# STAGE "decision point" for illustration (here set to m50_st)
+boundary_x <- m50_st
+
+p_stage <- ggplot(dat, aes(x = x, y = 0, colour = factor(y))) +
+  # STAGE plateau + tail densities at bottom
+  geom_ribbon(
+    data = grid_stage,
+    aes(x = x, ymin = y0_min, ymax = y0_max, fill = "0"),
+    inherit.aes = FALSE,
+    alpha = 0.25
+  ) +
+  geom_ribbon(
+    data = grid_stage,
+    aes(x = x, ymin = y1_min, ymax = y1_max, fill = "1"),
+    inherit.aes = FALSE,
+    alpha = 0.25
+  ) +
+  
+  # dashed line at STAGE m50
+  annotate(
+    "segment",
+    x = boundary_x,
+    xend = boundary_x,
+    y = -0.05,
+    yend = 0.3,
+    linetype = "dashed",
+    linewidth = 1,
+    colour = "black"
+  ) +
+  
+  annotate(
+    "text",
+    x = boundary_x,
+    y = 0.34,
+    label = expression(hat(italic(m))[50]),
+    size  = 4.5,
+    family = "serif",
+    colour = "black"
+  ) +
+  
+  # points at y = 0 with jitter
+  geom_jitter(height = 0.04, width = 0, alpha = 0.5, size = 1.8) +
+  scale_colour_manual(values = c("0" = "#00BFC4", "1" = "#F8766D")) +
+  scale_fill_manual(values = c("0" = "#00BFC4", "1" = "#F8766D")) +
+  scale_y_continuous(name = NULL, breaks = NULL, limits = c(-0.1, 0.45)) +
+  scale_x_continuous(
+    name = "Continuous variable (x)",
+    breaks = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "none",
+    panel.grid      = element_blank(),
+    axis.title.y    = element_blank(),
+    axis.text.y     = element_blank(),
+    axis.ticks.y    = element_blank()
+  )
+
+p_stage
+
+```
+
+
+
+This model has several key consequences:
+
+### Robust to class imbalance  
+STAGE (like LDA) is a generative model, so it is less effected by class imbalance.
+Inferences on \(m_{50}\) depend on the **relative shapes** of the densities, 
+rather than the counts at any particular value of \(x\). In contrast, 
+discriminative models (e.g. logistic regression) are very sensitive class 
+imbalance. 
+
+### Focus on data in the transition zone
+Observations far from the transition zone enter via the **uniform** component,  
+so they cannot distort estimates of the transition point. Individuals providing 
+no information about the boundary contribute only a constant term to the likelihood.
+
+### Decline in one class is matched with increase in the other  
+In a transition problem, the density of the lower class must fall in  
+the region where the higher class density rises. The STAGE model fits a 
+**common standard deviation** parameter to the upper tail of the lower class and 
+the lower tail of the higher class. By jointly modelling the tails in the 
+transition zone, a change in the tail of one class necessarily implies a  
+corresponding change in the other. This ensures that the estimated transition 
+point is determined by the relative behaviour of both densities, 
+not by the marginal behaviour of either class.
+
+### Bayesian inference  
+The STAGE model is offered under a Bayesian paradigm, as it gives the flexibility  
+to incorporate prior information and quantify uncertainty in any derived parameter
+or quantity. Multi-population structure is handled through a hierarchical model. 
+Uncertainty in the densities propagates automatically to uncertainty
+in \(m_{50}\), and population-level patterns can be estimated efficiently.
+
+The STAGE likelihood is a structured mixture inspired by the
+plateau–Gaussian formulation of Lau & Krumscheid [-@lau_plateau_2022],
+adapted specifically for transition-point estimation.
+
+
+
+# References

@@ -10,32 +10,36 @@ template:
 
 navbar:
   structure:
-    left:  [home, reference, articles, Stan]
-    right: [github, sts]
+    left:  [home, reference, articles, links]
+    right: [github]
 
   components:
 
     articles:
       text: "Articles"
       menu:
-        - text: "Why STAGE?"
-          href: articles/why-stage.html
+        - text: "Motivation"
+          href: articles/motivation.html
         - text: "The STAGE Likelihood"
           href: articles/likelihood.html
         - text: "Fitting STAGE"
           href: articles/fit-stage.html
-
-    sts:
-      text: "Sea Through Science"
-      icon: fa-globe
-      href: "https://seathrough.science"
-      aria-label: "Sea Through Science website"
 
     github:
       icon: fa-github
       href: "https://github.com/anhsmith/stage"
       aria-label: "stage GitHub repository"
 
-    Stan:
-      text: "Stan"
-      href: https://mc-stan.org
+    links:
+      text: "Links"
+      menu:
+      - text: "Sea Through Science"
+        href: https://wwww.seathrough.science
+      - text: "Stan"
+        href: https://mc-stan.org
+      - text: "CmdStanR"
+        href: https://mc-stan.org/cmdstanr/
+      - text: "tidyverse"
+        href: https://www.tidyverse.org/
+
+
