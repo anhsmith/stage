@@ -24,7 +24,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">stage</a>
 
@@ -38,18 +38,12 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/stage-intro.html">Introduction to the STAGE Model</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://mc-stan.org">Stan</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
-</form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/anhsmith/stage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/anhsmith/stage" aria-label="stage GitHub repository"><span class="fa fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://seathrough.science" aria-label="Sea Through Science website"><span class="fa fa-globe"></span> Sea Through Science</a></li>
       </ul>
 </div>
 
@@ -59,121 +53,25 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="id_-stage-">
-<strong>📦 stage</strong> <a class="anchor" aria-label="anchor" href="#id_-stage-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="id_-stage-">📦 stage <a class="anchor" aria-label="anchor" href="#id_-stage-"></a>
 </h1>
 </div>
-<p>The <strong>stage</strong> package implements the <strong>STAGE</strong> model<br>
-(<strong>S</strong>tate <strong>T</strong>ransition <strong>A</strong>nalysis via <strong>G</strong>enerative <strong>E</strong>stimator),<br>
-a Bayesian generative classifier for estimating <strong>transition points</strong><br>
-(e.g., <em>length-at-maturity</em>) from two groups where the underlying<br>
-distributions consist of:</p>
+<p>The <strong>stage</strong> package implements the <strong>STAGE</strong> model (<strong>S</strong>tate <strong>T</strong>ransition <strong>A</strong>nalysis via <strong>G</strong>enerative <strong>E</strong>stimator), a Bayesian generative classifier for estimating <strong>transition points (m50)</strong> from two groups—at what value of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> does <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y=1</annotation></semantics></math> become probable. An example is <em>length-at-maturity</em> problems, where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math> is binary maturity status, and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> is a continuous measurement, such as length.</p>
+<p>Existing methods for these sorts of applications have important limitations (see below), which the STAGE model overcomes.</p>
+<p>Features of the STAGE model are:</p>
 <ul>
-<li>a <strong>uniform plateau</strong>,<br>
+<li>Each class is fit with a mixture distribution that combines a <strong>uniform plateau</strong> with a <strong>Gaussian tail</strong>
 </li>
-<li>a <strong>Gaussian tail</strong>, and<br>
-</li>
-<li>a <strong>shared transition region</strong> centred at <strong>m50</strong> with width <strong>d</strong>.</li>
+<li>Estimation of the transition point (<strong>m50</strong>) is based on the <strong>relative densities</strong> (Bayes’ rule) of the classes given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>, not discriminative regression</li>
+<li>A <strong>shared transition region</strong> centred at <strong>m50</strong> with width <strong>d</strong>.</li>
 </ul>
-<p>The goal is <strong>robust transition-point estimation</strong> even with<br>
-highly unbalanced sample sizes and data far from the transition zone.</p>
+<p>The goal is a model <strong>transition-point estimation</strong> that focuses inference on data in and around the transition point while being robust to unbalanced sample sizes.</p>
+<p><img src="reference/figures/stage_icon.png"></p>
+<p>The process of testing the STAGE model against other methods is underway.</p>
 <hr>
 </div>
 <div class="section level1">
-<h1 id="introduction">
-<strong>Introduction</strong><a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h1>
-<div class="section level2">
-<h2 id="problems-with-existing-methods">Problems with existing methods<a class="anchor" aria-label="anchor" href="#problems-with-existing-methods"></a>
-</h2>
-<p>Estimating a transition point—such as the length at which individuals shift from immature to mature—is a simple and common task, but it is surprisingly difficult. Existing methods each fail in important ways.</p>
-<div class="section level3">
-<h3 id="ad-hoc-midpoint-methods">Ad hoc midpoint methods<a class="anchor" aria-label="anchor" href="#ad-hoc-midpoint-methods"></a>
-</h3>
-<p>A common practice is to avoid fitting a model altogether and instead compute a transition point directly from the data.<br>
-A widespread example is the midpoint between the smallest mature and largest immature individuals. The advantage of this approach is that it focuses on the transition zone only. However, this approach (1) has no probabilistic foundation and so cannot quantify uncertainty, and (2) uses only two data points, so has very high variance.</p>
-</div>
-<div class="section level3">
-<h3 id="discriminative-models-eg-logistic-regression">Discriminative models (e.g., logistic regression)<a class="anchor" aria-label="anchor" href="#discriminative-models-eg-logistic-regression"></a>
-</h3>
-<p>Discriminative models such as logistic regression estimate the conditional probability <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(y = 1 \mid x)</annotation></semantics></math><em>directly</em>. In other words, the model focuses on predicting class labels based on the prevalence of one class vs another at each value of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</p>
-<p>While simple and familiar, they suffer from two major issues in this setting:</p>
-<ol style="list-style-type: decimal">
-<li><p><strong>Sensitivity to class imbalance.</strong><br>
-Logistic regression (and other discriminative models) estimates the probability of maturity in the sample, not the population. Unless sampling is independent of both class and size, the estimated curve can be seriously biased. If one class has a much greater sample size than the other (i.e., they are unbalanced), logistic regression effectively places more weight on the more abundant class. This pulls the estimated transition curve toward the majority class, even though class counts should not determine where the transition occurs.</p></li>
-<li><p><strong>Influence from biologically irrelevant regions.</strong><br>
-Observations far from the transition zone change the fitted slope and intercept—even though they contain <strong>no information</strong> about where the transition takes place. For example, if the true transition is around 1000 mm, individuals at 200–400 mm should not influence the estimate of the maturity transition, but in a discriminative model they often do.</p></li>
-</ol>
-<p>An advantage of the discriminative-model approach is that inferences about the transition point are based mainly on data near the transition zone.</p>
-</div>
-<div class="section level3">
-<h3 id="gaussian-generative-models-eg-linear-discriminant-analysis">Gaussian generative models (e.g., Linear Discriminant Analysis)<a class="anchor" aria-label="anchor" href="#gaussian-generative-models-eg-linear-discriminant-analysis"></a>
-</h3>
-<p>Generative classifiers model the class-conditional densities</p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x \mid y = 0), \qquad f(x \mid y = 1)</annotation></semantics></math>,</p>
-<p>and then obtain <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(y=1 \mid x)</annotation></semantics></math><em>via</em> Bayes’ rule.</p>
-<p>The generative classifier approach has the advantage of being less sensitive to class imbalance, since the transition point estimate depends on the shapes of the class distributions, not their relative sample sizes. This is achieved by fitting a density to each class separately, and then calculating the transition point based on the relative densities of the two classes. Linear Discriminant Analysis (LDA) is a widely used generative classifier that fits a Gaussian (Normal) density to each class.</p>
-<p>However, while generative models are less sensitive to class imbalance, they suffer from another important limitation: <em>estimation of the transition point is influenced by all values of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>, not just those near the transition zone</em>. In LDA, the Gaussian tail behaviour near the transition is determined by the estimated mean and variance of each class—and those estimates are strongly affected by observations far from the transition. In the context of length-at-maturity, this means that very small immature individuals (e.g., neonates) and very large mature individuals have as much influence on the transition point as individuals whose lengths fall near the maturity boundary. This is unappealing, because these distant observations contain almost no information about the location of the transition, yet they shape the Gaussian fits and can shift the inferred transition point substantially. This creates a further structural problem: the two tails that actually matter for the transition—the upper tail of the immature class and the lower tail of the mature class—are not modelled directly against each other. Instead, each tail is constrained to be the mirror image of the opposite tail of its own class (because of the global Gaussian assumption).</p>
-<hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
-</h2>
-<p>What is needed is a model for estimating transition points that:</p>
-<ul>
-<li>is probabilistic and can quantify uncertainty,</li>
-<li>robust to class imbalance, and</li>
-<li>focuses inference on data in the overlap region rather than distant data.</li>
-</ul>
-<hr>
-</div>
-</div>
-<div class="section level1">
-<h1 id="the-stage-solution">
-<strong>The STAGE solution</strong><a class="anchor" aria-label="anchor" href="#the-stage-solution"></a>
-</h1>
-<p>The STAGE model is a Bayesian generative classifier where each class is fit with an <strong>asymmetric Uniform–Gaussian mixture</strong>.</p>
-<ul>
-<li>
-<strong>Immature (y = 0):</strong><br>
-uniform plateau → Gaussian decay approaching the transition.</li>
-<li>
-<strong>Mature (y = 1):</strong><br>
-Gaussian rise out of the transition → uniform plateau.</li>
-</ul>
-<p>This design has several key consequences:</p>
-<div class="section level3">
-<h3 id="generative-modelling">Generative modelling<a class="anchor" aria-label="anchor" href="#generative-modelling"></a>
-</h3>
-<p>Transition probability arises from comparing <strong>relative densities</strong><br>
-(Bayes rule), not from discriminative regression.</p>
-</div>
-<div class="section level3">
-<h3 id="irrelevant-regions-contribute-minimally">Irrelevant regions contribute minimally<a class="anchor" aria-label="anchor" href="#irrelevant-regions-contribute-minimally"></a>
-</h3>
-<p>Observations far from the transition zone enter via the <strong>uniform</strong> component,<br>
-so they cannot distort estimates of the transition point.</p>
-</div>
-<div class="section level3">
-<h3 id="robust-to-imbalance">Robust to imbalance<a class="anchor" aria-label="anchor" href="#robust-to-imbalance"></a>
-</h3>
-<p>Because inference depends on the <strong>shape</strong> of the densities—not the counts—<br>
-unbalanced datasets do not bias m50.</p>
-</div>
-<div class="section level3">
-<h3 id="bayesian-inference">Bayesian inference<a class="anchor" aria-label="anchor" href="#bayesian-inference"></a>
-</h3>
-<p>Posterior uncertainty is natural, and multi-population structure is<br>
-handled with a hierarchical model.</p>
-<p>The STAGE likelihood is a structured mixture inspired by the plateau–Gaussian<br>
-formulation of Lau &amp; Krumscheid (2022), adapted for transition-point estimation.</p>
-<hr>
-</div>
-</div>
-<div class="section level1">
-<h1 id="package-features">
-<strong>Package features</strong><a class="anchor" aria-label="anchor" href="#package-features"></a>
+<h1 id="package-features">Package features<a class="anchor" aria-label="anchor" href="#package-features"></a>
 </h1>
 <ul>
 <li>
@@ -206,8 +104,7 @@ formulation of Lau &amp; Krumscheid (2022), adapted for transition-point estimat
 <hr>
 </div>
 <div class="section level1">
-<h1 id="installation">
-<strong>Installation</strong><a class="anchor" aria-label="anchor" href="#installation"></a>
+<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
 <p>You need <strong>cmdstanr</strong> + CmdStan installed:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -221,8 +118,7 @@ formulation of Lau &amp; Krumscheid (2022), adapted for transition-point estimat
 <hr>
 </div>
 <div class="section level1">
-<h1 id="example">
-<strong>Example</strong><a class="anchor" aria-label="anchor" href="#example"></a>
+<h1 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h1>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/stage" class="external-link">stage</a></span><span class="op">)</span></span>
