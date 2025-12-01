@@ -21,6 +21,10 @@ transition_point(object, population = NULL, ...)
   Optional population index (integer) or label (character). If `NULL`,
   return global and all populations.
 
+- ...:
+
+  Currently ignored. Included for method compatibility.
+
 ## Value
 
 A named list or numeric vector with posterior summary stats.

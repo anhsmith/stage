@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   stage-intro: stage-intro.html
-last_built: 2025-11-29T03:27Z
+last_built: 2025-12-01T00:05Z
 urls:
   reference: https://anhsmith.github.io/stage/reference
   article: https://anhsmith.github.io/stage/articles
