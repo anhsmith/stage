@@ -25,16 +25,58 @@ This vignette describes the **likelihood and parameterisation** used in the STAG
 STAGE is a **hierarchical Bayesian generative model** designed to estimate a
 **transition point** \(m_{50}\) on variable \(x\) between two classes—for example, the length at which individuals
 transition from immature to mature. The model produces a posterior
-distribution for key parameter \(m_{50}\), representing the value of \(x\) at which the probabilities \(Pr(y=0)\) and \(\Pr(y=1)\) are equal. 
+distribution for key parameter \(m_{50}\), representing the value of \(x\) at which the probabilities \(\Pr(y=0)\) and \(\Pr(y=1)\) are equal. 
 The model can also be used to derive other useful quantities (such as class probabilities
 \(\Pr(y = 1 \mid x)\)).
 
+Conceptually, STAGE is a **Bayesian generative classifier** for estimating a transition point (e.g. length at maturity). Each class is fit with an asymmetric **plateau–Gaussian** density:
+
+- the lower class has a **uniform plateau** followed by a **Gaussian tail down into the transition**,  
+- the higher class has a **Gaussian tail up out of the transition** followed by a **uniform plateau**.
+
+```{r visualize, fig.width=6, fig.height=4, echo=FALSE}
+# parameters for the illustration
+L      <- 1000
+U      <- 1700
+sigma  <- 120
+m50    <- 1350           # mid point
+d      <- 300            # separation
+mu0    <- m50 - d/2      # 1200
+mu1    <- m50 + d/2      # 1500
+
+pdat <- tibble(x = L:U) |> 
+  rowwise() |> 
+  mutate(
+    `y=0` = plateau_gaussian_density_left(
+      x, mu = mu0, sigma = sigma, L = L),
+    `y=1` = plateau_gaussian_density_right(
+      x, mu = mu1, sigma = sigma, U = U)
+  ) |> 
+  ungroup() |>
+  pivot_longer(
+    cols = c(`y=0`, `y=1`),
+    names_to = "Class",
+    values_to = "Density"
+  )
+
+# maximum density
+maxd <- max(pdat$Density)
+
+p <- ggplot(pdat) +
+  aes(x = x, y = Density, fill = Class) +
+  geom_area(alpha = 0.45, position = "identity")
+
+p
+```
+
+This construction focuses inference on the **overlap region** and prevents distant observations 
+(e.g. very small immatures, very large matures) from unduly influencing the transition point.
+
 The central idea is to model each class with a **piecewise density** that combines a **uniform plateau** in regions far from the transition, and a **Gaussian tail** in the transition region. The left group (\(y = 0\)) is modelled with a uniform on the left that begins at the lower truncation value \(L\). The distribution remains flat until it approaches the transition range, at which point the distribution declines according to a Gaussian. The right group (\(y = 1\)) is a mirror image of the left—it increases according to a Gaussian distribution and then levels off to a uniform, terminating at the upper truncation value \(U\). 
 
-The model focuses inference on the **transition zone**, where the values of \(x\) of the two classes overlap, thereby limiting the influence of
-observations that are biologically uninformative because they are far away from the transition point.
+The model focuses inference on the **transition zone**, where the values of \(x\) of the two classes overlap, and down-weights observations that are biologically uninformative because they are far away from the transition point.
 
-The PDF of the uniform-Gaussian used here was modified from the PDF uniform and two Guassians described by Lau & Krumscheid [-@lau_plateau_2022].
+The uniform–Gaussian pdf used here is adapted from a plateau proposal distribution combining a uniform and two Gaussians described by Lau & Krumscheid [-@lau_plateau_2022].
 
 # Model summary
 
@@ -62,7 +104,8 @@ Additional parameters govern the **width** and **sharpness** of the transition:
 
 - \(d\) controls the distance between \(\mu_0\) and \(\mu_1\) (the width of the
   transition region),
-- \(\sigma\) controls the spread (standard deviation) of the Gaussian tails.
+- \(\sigma\) (denoted `sigma_x` in the Stan code) controls the spread (standard
+  deviation) of the Gaussian tails.
 
 By allowing different behaviours on either side of \(m_{50}\), the model can capture
 **asymmetric transition patterns**: the immature class can decline towards the
@@ -73,47 +116,48 @@ This is particularly useful in settings where:
 - the boundary between classes is **not sharp**, and  
 - the data exhibit **gradual overlap** between the two classes.
 
-
 # Likelihood
 
 The likelihood is built from two **unnormalised log-density functions** for the two
 classes. We work on the log scale for numerical stability and then subtract
-log-normalising constants to ensure valid densities.
+log-normalising constants to obtain valid densities.
 
-Let \(f_0(x)\) and \(f_1(x)\) denote the unnormalised densities for the two classes.
+Let \(\ell_0(x)\) and \(\ell_1(x)\) denote the unnormalised log-densities for
+\(y = 0\) and \(y = 1\), respectively. The corresponding (unnormalised) densities
+are \(\tilde f_k(x) = \exp\{\ell_k(x)\}\).
+
+We restrict attention to the truncated interval \([L, U]\); the densities are zero
+outside this range.
 
 ## Lower class (\(y = 0\))
 
-For \(y_i = 0\), the unnormalised piecewise log-density is:
+For \(y_i = 0\), the unnormalised piecewise log-density is
 
 \[
-f(x_i \mid y_i = 0, \mu_0, \sigma, L) =
+\ell_0(x_i \mid \mu_0, \sigma, L) =
 \begin{cases}
-0 & \text{if } x_i < L \\
-1 & \text{if } L \leq x_i \leq \mu_0 \\
--\dfrac{(x_i - \mu_0)^2}{2\sigma^2} & \text{if } x_i > \mu_0
+0 & \text{if } L \leq x_i \leq \mu_0, \\
+-\dfrac{(x_i - \mu_0)^2}{2\sigma^2} & \text{if } x_i > \mu_0 .
 \end{cases}
 \]
 
 Here:
 
-- the plateau region \([L, \mu_0]\) has constant (log-)density 1,  
+- the plateau region \([L, \mu_0]\) has constant log-density 0 (density 1),
 - the tail region \(x_i > \mu_0\) decays according to a Gaussian kernel.
 
-In implementation, this is treated as an **unnormalised log-density**; the overall
-density is recovered after subtracting a normalising constant.
-
+Any constant could be added to \(\ell_0(\cdot)\) without changing the posterior; we
+fix the plateau at 0 so that the plateau density is 1 after exponentiation.
 
 ## Higher class (\(y = 1\))
 
-For \(y_i = 1\), the unnormalised piecewise log-density is:
+For \(y_i = 1\), the unnormalised log-density is
 
 \[
-f(x_i \mid y_i = 1, \mu_1, \sigma, U) =
+\ell_1(x_i \mid \mu_1, \sigma, U) =
 \begin{cases}
--\dfrac{(x_i - \mu_1)^2}{2\sigma^2} & \text{if } x_i < \mu_1 \\
-1 & \text{if } \mu_1 \leq x_i \leq U \\
-0 & \text{if } x_i > U
+-\dfrac{(x_i - \mu_1)^2}{2\sigma^2} & \text{if } x_i < \mu_1, \\
+0 & \text{if } \mu_1 \leq x_i \leq U .
 \end{cases}
 \]
 
@@ -122,27 +166,38 @@ Now:
 - the Gaussian tail is **below** \(\mu_1\), and  
 - the plateau covers the upper region \([\mu_1, U]\).
 
-In both cases, we are effectively using a **plateau–Gaussian** mixture: a flat
-density where the class “dominates” and a Gaussian shape in the transition
-region where the other class is present.
-
+In both cases we have a **plateau–Gaussian** shape: a flat density where the class
+“dominates” and a Gaussian tail in the transition region where the other class is
+present.
 
 ## Normalisation constants
 
-To convert the unnormalised densities into proper probability density functions
-(pdf), we divide by constants \(C_0\) and \(C_1\) chosen such that the densities
-integrate to 1 over \([L, U]\).
+To convert \(\tilde f_k(x) = \exp\{\ell_k(x)\}\) into proper probability density
+functions on \([L, U]\), we divide by constants \(C_0\) and \(C_1\) chosen so that
+the densities integrate to 1.
 
-For the immature class, the normalising constant is:
+For the immature class (\(y = 0\)):
 
 \[
-C_0 = \frac{\sqrt{2\pi} \, \sigma}{2} + (\mu_0 - L).
+C_0
+= \int_L^{\mu_0} 1 \, dx
+  + \int_{\mu_0}^{\infty}
+    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+      -\frac{(x - \mu_0)^2}{2\sigma^2}
+    \right) dx
+= (\mu_0 - L) + \frac{\sqrt{2\pi}\,\sigma}{2}.
 \]
 
-For the mature class, the normalising constant is:
+For the mature class (\(y = 1\)):
 
 \[
-C_1 = \frac{\sqrt{2\pi} \, \sigma}{2} + (U - \mu_1).
+C_1
+= \int_{-\infty}^{\mu_1}
+    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+      -\frac{(x - \mu_1)^2}{2\sigma^2}
+    \right) dx
+  + \int_{\mu_1}^{U} 1 \, dx
+= \frac{\sqrt{2\pi}\,\sigma}{2} + (U - \mu_1).
 \]
 
 Intuitively:
@@ -150,40 +205,37 @@ Intuitively:
 - \((\mu_0 - L)\) and \((U - \mu_1)\) are the **widths of the uniform plateaus**,  
 - \(\sqrt{2\pi}\,\sigma / 2\) is the **contribution from the half-Gaussian tail**.
 
-The **log-likelihood contributions** for each observation are then:
+The corresponding **log-likelihood contribution** for observation \(i\) is
 
 \[
-\log \mathcal{L}_i \;=\;
+\log \mathcal{L}_i =
 \begin{cases}
-\log f(x_i) - \log C_0 & \text{if } y_i = 0 \\
-\log f(x_i) - \log C_1 & \text{if } y_i = 1.
+\ell_0(x_i) - \log C_0 & \text{if } y_i = 0, \\
+\ell_1(x_i) - \log C_1 & \text{if } y_i = 1.
 \end{cases}
 \]
 
-
-## Full log-likelihood
-
-Summing over all observations, the joint log-likelihood is:
+Summing over all observations,
 
 \[
-\log p(x, y \mid m_{50}, d, \sigma) \;=\;
+\log p(x, y \mid m_{50}, d, \sigma)
+=
 \sum_{i=1}^{N}
-\left[
-  \log f(x_i \mid y_i, \mu_{y_i}, \sigma)
-  - \log C_{y_i}
-\right],
+\big[
+  \ell_{y_i}(x_i) - \log C_{y_i}
+\big],
 \]
 
-where
-
-- \(f(\cdot)\) is the appropriate unnormalised density for class \(y_i\), and  
-- \(C_{y_i} \in \{C_0, C_1\}\) is the normalising constant for that class.
-
+which is exactly the likelihood implemented in the Stan code used by
+`fit_stage()`.
 
 # Prior specification
 
 The priors reflect prior beliefs about plausible transition points and transition
-widths in typical length-at-maturity problems (but can be changed by the user).
+widths in typical length-at-maturity problems. In practice, these are **defaults**
+that should be adapted to the scale of the data and prior biological knowledge.
+
+By default, STAGE uses weakly informative normal priors:
 
 - **Transition point** \(m_{50}\):
 
@@ -200,9 +252,9 @@ d \sim \mathcal{N}(100, 100),
 \]
 
 which allows the width of the overlap region to vary around 100 units with a wide
-spread.
+spread. Note that \(d\) is the distance between the class-specific Gaussian centres.
 
-- **Gaussian spread** \(\sigma\):
+- **Gaussian spread** \(\sigma\) (Stan parameter `sigma_x`):
 
 \[
 \sigma \sim \mathcal{N}(100, 50),
@@ -212,8 +264,7 @@ representing prior beliefs about the scale of variability in the transition tail
 
 In practice, you should adapt these priors to your scale (e.g., lengths, ages)
 and prior biological knowledge. The STAGE implementation allows you to pass in
-hyperparameters via helper functions (e.g. `stage_priors()`).
-
+hyperparameters via helper functions such as `stage_priors()`.
 
 # Transformed parameters
 
@@ -237,7 +288,9 @@ targets, while \(\mu_0\) and \(\mu_1\) are derived quantities.
 # From class densities to class probabilities (Bayes rule)
 
 The likelihood above defines the **class-conditional densities**  
-\(f_0(x) = p(x \mid y = 0)\) and \(f_1(x) = p(x \mid y = 1)\) on \([L, U]\).
+\(f_0(x) = p(x \mid y = 0)\) and \(f_1(x) = p(x \mid y = 1)\) on \([L, U]\), obtained
+by normalising the unnormalised densities \(\tilde f_k(x) = \exp\{\ell_k(x)\}\) with
+the constants \(C_k\).
 
 To obtain the probability that an individual with a particular \(x\) value is 
 in the higher class (\(y = 1\)), we use Bayes rule:
@@ -273,8 +326,7 @@ simplifies to
 These are the class probabilities that the STAGE model uses for prediction, and
 they are what you see when you plot \(\Pr(y = 1 \mid x)\) as a function of \(x\).
 
-
-### Connection to \(m_{50}\)
+## Connection to \(m_{50}\)
 
 By definition, the transition point \(m_{50}\) is the value of \(x\) where the
 two classes are equally probable:
@@ -301,7 +353,7 @@ Thus, \(m_{50}\) can be viewed in two equivalent ways:
    \mu_0 = m_{50} - \frac{d}{2}, \qquad
    \mu_1 = m_{50} + \frac{d}{2},
    \]
-2. As the **Bayes classifier cut-point** where the posterior class probabilities
+2. As the **Bayes-optimal classifier cut-point** where the posterior class probabilities
    for immature and mature are both 0.5.
 
 In practice, the STAGE model samples \(m_{50}\), \(d\), and \(\sigma\) from their
@@ -311,41 +363,61 @@ crosses 0.5 aligns with the sampled value of \(m_{50}\). This makes the
 interpretation of \(m_{50}\) as a “50% maturity” transition point directly linked
 to the underlying generative model and Bayes-optimal classifier.
 
+## Visualising a single STAGE transition
 
-# Advantages of the STAGE likelihood
+We can visualise a simple STAGE configuration, showing:
 
-1. **Piecewise densities**
+- the immature and mature densities, and
+- the resulting transition probability \(\Pr(y=1 \mid x)\).
 
-   The plateau–Gaussian form naturally captures situations where individuals in one
-   class (e.g., immatures) are approximately uniform over a wide region, but then
-   decline gradually into the transition. Similarly for the mature class. This is
-   more realistic than assuming a global Gaussian for each class.
 
-2. **Focus on the transition region**
+```{r visualize-likelihood, fig.width=6, fig.height=4, echo=FALSE}
 
-   Because only the Gaussian tails enter the overlap region, the estimation of
-   \(m_{50}\) is driven by observations near the transition. Distant observations
-   (e.g., very small immatures, very large matures) mainly contribute through the
-   uniform plateau and therefore do not distort the transition point.
+# maximum density
+maxd <- max(pdat$Density)
 
-3. **Flexibility via \(d\)**
+p <- p +
+  scale_fill_manual(values = c("#00BFC4", "#F8766D")) +
+  labs(
+    x = "x",
+    y = "Density",
+    fill = "State"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
 
-   The parameter \(d\) controls the width of the transition zone, allowing the
-   model to capture anything from very sharp to very gradual transitions.
+# add labelled structure
+p +
+  # vertical lines for key parameters
+  geom_segment(aes(x = mu0, xend = mu0, y = 0, yend = maxd),
+               linetype = 2, colour = "#00BFC4") +
+  geom_segment(aes(x = mu1, xend = mu1, y = 0, yend = maxd),
+               linetype = 2, colour = "#F8766D") +
+  geom_segment(aes(x = m50, xend = m50, y = 0, yend = maxd),
+               linetype = 2, colour = "black") +
+  geom_vline(xintercept = L, linetype = 3, alpha = 0.3) +
+  geom_vline(xintercept = U, linetype = 3, alpha = 0.3) +
 
-4. **Bayesian inference**
+  # annotate regions
+  annotate("text", x = L + 20,  y = 0.003,
+           label = "Plateau (y = 0)", colour = "#00BFC4", hjust = 0) +
+  annotate("text", x = U - 20,  y = 0.003,
+           label = "Plateau (y = 1)", colour = "#F8766D", hjust = 1) +
 
-   A fully Bayesian treatment:
+  annotate("text", x = mu0, y = maxd,
+           label = expression(mu[0]), colour = "#00BFC4", vjust = -0.4) +
+  annotate("text", x = mu1, y = maxd,
+           label = expression(mu[1]), colour = "#F8766D", vjust = -0.4) +
+  annotate("text", x = m50, y = maxd,
+           label = expression(m[50]), vjust = -0.5) +
 
-   - incorporates prior knowledge (e.g., plausible ranges for \(m_{50}\)),  
-   - provides full posterior uncertainty for all parameters,  
-   - extends naturally to **hierarchical models** with multiple populations.
-
-5. **Proper normalisation**
-
-   The explicit normalising constants \(C_0\) and \(C_1\) ensure that each
-   class-conditional density is a valid pdf. This is crucial for stable
-   inference in Stan and for interpreting posterior predictions as probabilities.
+  # illustrate d
+  annotate("segment",
+           x = mu0, xend = mu1, y = 0.001, yend = 0.001,
+           arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = m50 * 1.03, y = 0.001 * 1.05,
+           label = "d", vjust = 0, hjust = 0)
+```
 
 
 # Relationship to the `stage` implementation

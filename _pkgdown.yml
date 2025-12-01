@@ -6,14 +6,7 @@ template:
     bootswatch: flatly
     primary: "#051838"
 
-articles:
-  - title: "Articles"
-    desc: >
-      Introductory articles showing how to fit and interpret STAGE models.
-    contents:
-      - why-stage
-      - likelihood
-      - fit-stage
+
 
 navbar:
   structure:
@@ -21,6 +14,17 @@ navbar:
     right: [github, sts]
 
   components:
+
+    articles:
+      text: "Articles"
+      menu:
+        - text: "Why STAGE?"
+          href: articles/why-stage.html
+        - text: "The STAGE Likelihood"
+          href: articles/likelihood.html
+        - text: "Fitting STAGE"
+          href: articles/fit-stage.html
+
     sts:
       text: "Sea Through Science"
       icon: fa-globe
