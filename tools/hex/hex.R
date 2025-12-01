@@ -2,7 +2,7 @@
 library(hexSticker)
 
 sticker(
-  subplot   = "inst/figures/stage_icon.png",
+  subplot   = "man/figures/stage_icon.png",
   package   = "stage",
   p_size    = 30,
   p_color   = "white",

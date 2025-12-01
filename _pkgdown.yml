@@ -1,4 +1,37 @@
 url: https://anhsmith.github.io/stage/
+
 template:
   bootstrap: 5
+  bslib:
+    bootswatch: flatly
+    primary: "#051838"
 
+articles:
+  - title: "Articles"
+    desc: >
+      Introductory articles showing how to fit and interpret STAGE models.
+    contents:
+      - why-stage
+      - likelihood
+      - fit-stage
+
+navbar:
+  structure:
+    left:  [home, reference, articles, Stan]
+    right: [github, sts]
+
+  components:
+    sts:
+      text: "Sea Through Science"
+      icon: fa-globe
+      href: "https://seathrough.science"
+      aria-label: "Sea Through Science website"
+
+    github:
+      icon: fa-github
+      href: "https://github.com/anhsmith/stage"
+      aria-label: "stage GitHub repository"
+
+    Stan:
+      text: "Stan"
+      href: https://mc-stan.org
