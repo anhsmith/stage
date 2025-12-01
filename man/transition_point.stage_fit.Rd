@@ -11,6 +11,8 @@
 
 \item{population}{Optional population index (integer) or label (character).
 If \code{NULL}, return global and all populations.}
+
+\item{...}{Currently ignored. Included for method compatibility.}
 }
 \value{
 A named list or numeric vector with posterior summary stats.

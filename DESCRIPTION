@@ -1,9 +1,19 @@
 Package: stage
-Title: What the Package Does (One Line, Title Case)
+Title: Models for Estimating Stage-Transition Points
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Adam N. H.", "Smith", , "anhsmith@gmail.com", role = c("aut", "cre"))
+Description: The STAGE package implements Bayesian models for estimating 
+    transition points between two classes. The model developed specifically 
+    in this package is the STAGE model (State Transition Analysis via Generative 
+    Estimator), which fits a uniform (plateau) region and a Gaussian tail to 
+    each maturity stage. Other models offered include the 'HOF' parameterisation 
+    of logistic regression, and Linear Discriminant Analysis (all Bayesian). 
+    The package provides functions for fitting single-population and 
+    hierarchical models, extracting posterior transition points (m50), 
+    producing predictions, and summarising uncertainty. The methods are 
+    designed for applications such as maturity estimation and other problems 
+    involving class overlap and asymmetric distributions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -12,9 +22,9 @@ URL: https://github.com/anhsmith/stage, https://anhsmith.github.io/stage/
 BugReports: https://github.com/anhsmith/stage/issues
 Imports: 
     cli,
-    posterior,
     stats
 Suggests: 
+    posterior,
     cmdstanr,
     testthat,
     ggplot2,
