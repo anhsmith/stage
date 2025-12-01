@@ -4,8 +4,8 @@ pkgdown_sha: ~
 articles:
   fit-stage: fit-stage.html
   likelihood: likelihood.html
-  why-stage: why-stage.html
-last_built: 2025-12-01T05:29Z
+  motivation: motivation.html
+last_built: 2025-12-01T23:55Z
 urls:
   reference: https://anhsmith.github.io/stage/reference
   article: https://anhsmith.github.io/stage/articles
