@@ -54,13 +54,6 @@ In logistic regression, a logistic curve is fit to the data, and the
 estimate of the transition point $m_{50}$ is defined as the value of $x$
 where the fitted probability equals 0.5.
 
-    ## Warning: There was 1 warning in `mutate()`.
-    ## ℹ In argument: `p_hat = predict(fit_logit, newdata = cur_data_all(), type =
-    ##   "response")`.
-    ## Caused by warning:
-    ## ! `cur_data_all()` was deprecated in dplyr 1.1.0.
-    ## ℹ Please use `pick()` instead.
-
 ![](motivation_files/figure-html/unnamed-chunk-3-1.png)
 
 While simple and familiar, *logistic regression (and other

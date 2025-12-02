@@ -140,12 +140,6 @@ estimate of the transition point
 is defined as the value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 where the fitted probability equals 0.5.</p>
-<pre><code><span><span class="co">## Warning: There was 1 warning in `mutate()`.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> In argument: `p_hat = predict(fit_logit, newdata = cur_data_all(), type =</span></span>
-<span><span class="co">##   "response")`.</span></span>
-<span><span class="co">## Caused by warning:</span></span>
-<span><span class="co">## <span style="color: #BBBB00;">!</span> `cur_data_all()` was deprecated in dplyr 1.1.0.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Please use `pick()` instead.</span></span></code></pre>
 <p><img src="motivation_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="576"></p>
 <p>While simple and familiar, <em>logistic regression (and other
 discriminative models) are highly sensitive to class imbalance</em>. The
