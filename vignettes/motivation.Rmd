@@ -115,12 +115,15 @@ p <- dat |>
 
 p
 ```
+---
 
 # Problems with existing methods
 
 The statistical methods typically applied to this task are based on inappropriate assumptions and likely produce biased estimates of transition points.
 
 Below, we discuss three current approaches, highlighting the limitations of each. 
+
+---
 
 ## Ad hoc midpoint methods
 
@@ -228,6 +231,8 @@ p_midpoint <- dat |>
 
 p_midpoint
 ```
+
+---
 
 ## Discriminative models (e.g., logistic regression) 
 
@@ -427,6 +432,8 @@ p_logit_imbal
 An advantage of the discriminative-model approach (over other methods) is that 
 inferences about the transition point are based mainly on data near the transition zone.
 
+---
+
 ## Generative models (e.g., Linear Discriminant Analysis)
 
 Generative models (often called generative classifiers) are an alternative approach to discriminative models. 
@@ -556,12 +563,12 @@ This approach is less sensitive to class imbalance, they can suffer from another
 Observations far from the transition zone greatly affect the fitted density 
 for that class, and therefore have undue influence on the estimate of the 
 transition point. 
-For example, if the true transition is around 1000 mm, individuals at 200–400 mm 
+For example, if the true transition is around 1200 mm, individuals at 200–400 mm 
 should not influence the estimate of the maturity transition.
 
-*In LDA, because symmetrical Gaussian distributions are fit to each class, 
+In LDA in particular, because symmetrical Gaussian distributions are fit to each class, 
 the behaviour of the tails near the transition are determined as much by the 
-very lowest and highest values of \(x\) as by those near the transition.*
+very lowest and highest values of \(x\) as by those near the transition.
 
 In the context of length-at-maturity, this means that very small immature 
 individuals (e.g., neonates) and very large mature individuals have as much
@@ -582,16 +589,14 @@ the mirror image of the opposite tail of its own class
 # Summary 
 
 Data can be subject to all sorts of sampling biases, favouring one class over another, 
-or certain values of \(x\) over others. Often, these biases are unknown and uncontrollable. 
-These sampling biases can seriously distort estimates of transition points in known ways.
-
-Therefore, methods that are robust to these biases are needed.
+or certain values of \(x\) over others. Often, these biases are unknown and uncontrollable, 
+and can seriously distort estimates of transition points.
 
 What is needed is a model for estimating transition points that:
 
 - is probabilistic and can quantify uncertainty,
 - robust to class imbalance, and
-- focuses inference on data in the overlap region rather than distant data.
+- focuses inference on data in the overlap region, rather than distant data.
 
 ---
 
@@ -721,9 +726,9 @@ p_stage
 
 
 
-This model has several key consequences:
+The STAGE model has the following key properties:
 
-### Robust to class imbalance  
+- **Robust to class imbalance**  
 STAGE (like LDA) is a generative model, so it is far less affected by 
 class imbalance.
 Inferences about \(m_{50}\) depend on the **relative shapes** of the
@@ -732,13 +737,13 @@ class at any particular value of \(x\). In contrast, discriminative models
 (e.g., logistic regression) are highly sensitive to class imbalance because 
 they implicitly use the empirical class frequencies as priors.
 
-### Focus on data in the transition zone  
+- **Focus on data in the transition zone**  
 Observations far from the transition zone enter via the **uniform** component,
 so they have little influence on the estimate of the transition point. 
 Individuals that provide no information about the boundary contribute only 
 a constant term to the likelihood.
 
-### Decline in one class is matched with increase in the other  
+- **Decline in one class is matched with increase in the other**  
 In many transition problems (such as length at maturity), 
 the density of the lower class must decline in exactly the region where the
 higher-class density increases. STAGE encodes this by fitting a
@@ -749,7 +754,7 @@ This ensures that the estimated transition point is driven by the **relative**
 behaviour of the two densities, not by the marginal behaviour of either class 
 on its own.
 
-### Bayesian inference  
+- **Bayesian inference**  
 STAGE is presented under a Bayesian paradigm, providing the flexibility to
 incorporate prior information and to quantify uncertainty in any derived
 parameter or quantity.
@@ -762,6 +767,6 @@ The STAGE likelihood is a structured mixture inspired by the
 plateau–Gaussian formulation of Lau & Krumscheid [-@lau_plateau_2022],
 adapted specifically for transition-point estimation.
 
-
+---
 
 # References
