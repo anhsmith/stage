@@ -1,8 +1,11 @@
 # tools/hex/hex.R
 library(hexSticker)
+library(fs)
+
+# --- 1. Build the sticker -----------------------------------------------
 
 sticker(
-  subplot   = "man/figures/stage_icon.png",
+  subplot   = "tools/hex/stage_icon.png",
   package   = "stage",
   p_size    = 30,
   p_color   = "white",
@@ -13,6 +16,16 @@ sticker(
   s_height  = 0.72,
   h_fill    = "#051838",
   h_color   = NA,
-  filename  = "man/figures/logo.png",
+  filename  = "inst/figures/logo.png",
   dpi       = 300
 )
+
+
+# --- 2. Ensure pkgdown gets copies --------------------------------------
+
+dir_create("man/figures")
+
+file_copy("inst/figures/logo.png",  "man/figures/logo.png",  overwrite = TRUE)
+file_copy("tools/hex/stage_icon.png", "man/figures/stage_icon.png", overwrite = TRUE)
+
+message("Logo and icon copied into man/figures for pkgdown.")
