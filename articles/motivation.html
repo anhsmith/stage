@@ -103,7 +103,11 @@ To the left of
 class 0 is more likely; to the right of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
 class 1 is more likely.</p>
-<p><img src="motivation_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" width="576"></p>
+<div class="section level3">
+<h3 id="section">
+<img src="motivation_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" width="576"><a class="anchor" aria-label="anchor" href="#section"></a>
+</h3>
+</div>
 </div>
 <div class="section level2">
 <h2 id="problems-with-existing-methods">Problems with existing methods<a class="anchor" aria-label="anchor" href="#problems-with-existing-methods"></a>
@@ -113,6 +117,7 @@ inappropriate assumptions and likely produce biased estimates of
 transition points.</p>
 <p>Below, we discuss three current approaches, highlighting the
 limitations of each.</p>
+<hr>
 <div class="section level3">
 <h3 id="ad-hoc-midpoint-methods">Ad hoc midpoint methods<a class="anchor" aria-label="anchor" href="#ad-hoc-midpoint-methods"></a>
 </h3>
@@ -124,6 +129,7 @@ transition zone only. However, this approach (1) has no probabilistic
 foundation and so cannot quantify uncertainty, and (2) uses only two
 data points, so has high variance.</p>
 <p><img src="motivation_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" width="576"></p>
+<hr>
 </div>
 <div class="section level3">
 <h3 id="discriminative-models-e-g--logistic-regression">Discriminative models (e.g., logistic regression)<a class="anchor" aria-label="anchor" href="#discriminative-models-e-g--logistic-regression"></a>
@@ -157,6 +163,7 @@ resulting a highly imbalanced dataset and a biased estimate of
 <p>An advantage of the discriminative-model approach (over other
 methods) is that inferences about the transition point are based mainly
 on data near the transition zone.</p>
+<hr>
 </div>
 <div class="section level3">
 <h3 id="generative-models-e-g--linear-discriminant-analysis">Generative models (e.g., Linear Discriminant Analysis)<a class="anchor" aria-label="anchor" href="#generative-models-e-g--linear-discriminant-analysis"></a>
@@ -192,13 +199,13 @@ not just those near the transition zone</em>.</p>
 <p>Observations far from the transition zone greatly affect the fitted
 density for that class, and therefore have undue influence on the
 estimate of the transition point. For example, if the true transition is
-around 1000 mm, individuals at 200–400 mm should not influence the
+around 1200 mm, individuals at 200–400 mm should not influence the
 estimate of the maturity transition.</p>
-<p><em>In LDA, because symmetrical Gaussian distributions are fit to
-each class, the behaviour of the tails near the transition are
+<p>In LDA in particular, because symmetrical Gaussian distributions are
+fit to each class, the behaviour of the tails near the transition are
 determined as much by the very lowest and highest values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-as by those near the transition.</em></p>
+as by those near the transition.</p>
 <p>In the context of length-at-maturity, this means that very small
 immature individuals (e.g., neonates) and very large mature individuals
 have as much influence on the transition point as individuals whose
@@ -221,15 +228,13 @@ assumption).</p>
 <p>Data can be subject to all sorts of sampling biases, favouring one
 class over another, or certain values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-over others. Often, these biases are unknown and uncontrollable. These
-sampling biases can seriously distort estimates of transition points in
-known ways.</p>
-<p>Therefore, methods that are robust to these biases are needed.</p>
+over others. Often, these biases are unknown and uncontrollable, and can
+seriously distort estimates of transition points.</p>
 <p>What is needed is a model for estimating transition points that:</p>
 <ul>
 <li>is probabilistic and can quantify uncertainty,</li>
 <li>robust to class imbalance, and</li>
-<li>focuses inference on data in the overlap region rather than distant
+<li>focuses inference on data in the overlap region, rather than distant
 data.</li>
 </ul>
 <hr>
@@ -248,11 +253,10 @@ uniform plateau → Gaussian decay approaching the transition.</li>
 Gaussian rise out of the transition → uniform plateau.</li>
 </ul>
 <p><img src="motivation_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" width="576"></p>
-<p>This model has several key consequences:</p>
-<div class="section level4">
-<h4 id="robust-to-class-imbalance">Robust to class imbalance<a class="anchor" aria-label="anchor" href="#robust-to-class-imbalance"></a>
-</h4>
-<p>STAGE (like LDA) is a generative model, so it is far less affected by
+<p>The STAGE model has the following key properties:</p>
+<ul>
+<li><p><strong>Robust to class imbalance</strong><br>
+STAGE (like LDA) is a generative model, so it is far less affected by
 class imbalance. Inferences about
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
 depend on the <strong>relative shapes</strong> of the class-conditional
@@ -261,44 +265,37 @@ particular value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
 In contrast, discriminative models (e.g., logistic regression) are
 highly sensitive to class imbalance because they implicitly use the
-empirical class frequencies as priors.</p>
-</div>
-<div class="section level4">
-<h4 id="focus-on-data-in-the-transition-zone">Focus on data in the transition zone<a class="anchor" aria-label="anchor" href="#focus-on-data-in-the-transition-zone"></a>
-</h4>
-<p>Observations far from the transition zone enter via the
+empirical class frequencies as priors.</p></li>
+<li><p><strong>Focus on data in the transition zone</strong><br>
+Observations far from the transition zone enter via the
 <strong>uniform</strong> component, so they have little influence on the
 estimate of the transition point. Individuals that provide no
 information about the boundary contribute only a constant term to the
-likelihood.</p>
-</div>
-<div class="section level4">
-<h4 id="decline-in-one-class-is-matched-with-increase-in-the-other">Decline in one class is matched with increase in the other<a class="anchor" aria-label="anchor" href="#decline-in-one-class-is-matched-with-increase-in-the-other"></a>
-</h4>
-<p>In many transition problems (such as length at maturity), the density
-of the lower class must decline in exactly the region where the
+likelihood.</p></li>
+<li><p><strong>Decline in one class is matched with increase in the
+other</strong><br>
+In many transition problems (such as length at maturity), the density of
+the lower class must decline in exactly the region where the
 higher-class density increases. STAGE encodes this by fitting a
 <strong>shared standard deviation</strong> to the upper tail of the
 lower class and the lower tail of the higher class. By jointly modelling
 these tails, any change in one class’s decline implies a matching change
 in the other’s rise. This ensures that the estimated transition point is
 driven by the <strong>relative</strong> behaviour of the two densities,
-not by the marginal behaviour of either class on its own.</p>
-</div>
-<div class="section level4">
-<h4 id="bayesian-inference">Bayesian inference<a class="anchor" aria-label="anchor" href="#bayesian-inference"></a>
-</h4>
-<p>STAGE is presented under a Bayesian paradigm, providing the
-flexibility to incorporate prior information and to quantify uncertainty
-in any derived parameter or quantity. Multi-population structure is
-handled naturally through a hierarchical model: uncertainty in the
-densities propagates directly to uncertainty in
+not by the marginal behaviour of either class on its own.</p></li>
+<li><p><strong>Bayesian inference</strong><br>
+STAGE is presented under a Bayesian paradigm, providing the flexibility
+to incorporate prior information and to quantify uncertainty in any
+derived parameter or quantity. Multi-population structure is handled
+naturally through a hierarchical model: uncertainty in the densities
+propagates directly to uncertainty in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
-and population-level patterns can be estimated efficiently.</p>
+and population-level patterns can be estimated efficiently.</p></li>
+</ul>
 <p>The STAGE likelihood is a structured mixture inspired by the
 plateau–Gaussian formulation of Lau &amp; Krumscheid <span class="citation">(2022)</span>, adapted specifically for
 transition-point estimation.</p>
-</div>
+<hr>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

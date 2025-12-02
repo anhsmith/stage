@@ -20,7 +20,7 @@ In maturity studies, this point might be called “length at maturity”. To
 the left of $m_{50}$, class 0 is more likely; to the right of $m_{50}$,
 class 1 is more likely.
 
-![](motivation_files/figure-html/unnamed-chunk-1-1.png)
+### ![](motivation_files/figure-html/unnamed-chunk-1-1.png)
 
 ## Problems with existing methods
 
@@ -30,6 +30,8 @@ transition points.
 
 Below, we discuss three current approaches, highlighting the limitations
 of each.
+
+------------------------------------------------------------------------
 
 ### Ad hoc midpoint methods
 
@@ -42,6 +44,8 @@ foundation and so cannot quantify uncertainty, and (2) uses only two
 data points, so has high variance.
 
 ![](motivation_files/figure-html/unnamed-chunk-2-1.png)
+
+------------------------------------------------------------------------
 
 ### Discriminative models (e.g., logistic regression)
 
@@ -77,6 +81,8 @@ An advantage of the discriminative-model approach (over other methods)
 is that inferences about the transition point are based mainly on data
 near the transition zone.
 
+------------------------------------------------------------------------
+
 ### Generative models (e.g., Linear Discriminant Analysis)
 
 Generative models (often called generative classifiers) are an
@@ -111,13 +117,13 @@ of $x$, not just those near the transition zone*.
 Observations far from the transition zone greatly affect the fitted
 density for that class, and therefore have undue influence on the
 estimate of the transition point. For example, if the true transition is
-around 1000 mm, individuals at 200–400 mm should not influence the
+around 1200 mm, individuals at 200–400 mm should not influence the
 estimate of the maturity transition.
 
-*In LDA, because symmetrical Gaussian distributions are fit to each
-class, the behaviour of the tails near the transition are determined as
-much by the very lowest and highest values of $x$ as by those near the
-transition.*
+In LDA in particular, because symmetrical Gaussian distributions are fit
+to each class, the behaviour of the tails near the transition are
+determined as much by the very lowest and highest values of $x$ as by
+those near the transition.
 
 In the context of length-at-maturity, this means that very small
 immature individuals (e.g., neonates) and very large mature individuals
@@ -139,16 +145,14 @@ class (because of the global, class-wise, Gaussian assumption).
 
 Data can be subject to all sorts of sampling biases, favouring one class
 over another, or certain values of $x$ over others. Often, these biases
-are unknown and uncontrollable. These sampling biases can seriously
-distort estimates of transition points in known ways.
-
-Therefore, methods that are robust to these biases are needed.
+are unknown and uncontrollable, and can seriously distort estimates of
+transition points.
 
 What is needed is a model for estimating transition points that:
 
 - is probabilistic and can quantify uncertainty,
 - robust to class imbalance, and
-- focuses inference on data in the overlap region rather than distant
+- focuses inference on data in the overlap region, rather than distant
   data.
 
 ------------------------------------------------------------------------
@@ -165,49 +169,47 @@ fit with an **asymmetric Uniform–Gaussian mixture**.
 
 ![](motivation_files/figure-html/unnamed-chunk-6-1.png)
 
-This model has several key consequences:
+The STAGE model has the following key properties:
 
-#### Robust to class imbalance
+- **Robust to class imbalance**  
+  STAGE (like LDA) is a generative model, so it is far less affected by
+  class imbalance. Inferences about $m_{50}$ depend on the **relative
+  shapes** of the class-conditional densities, rather than the number of
+  observations in each class at any particular value of $x$. In
+  contrast, discriminative models (e.g., logistic regression) are highly
+  sensitive to class imbalance because they implicitly use the empirical
+  class frequencies as priors.
 
-STAGE (like LDA) is a generative model, so it is far less affected by
-class imbalance. Inferences about $m_{50}$ depend on the **relative
-shapes** of the class-conditional densities, rather than the number of
-observations in each class at any particular value of $x$. In contrast,
-discriminative models (e.g., logistic regression) are highly sensitive
-to class imbalance because they implicitly use the empirical class
-frequencies as priors.
+- **Focus on data in the transition zone**  
+  Observations far from the transition zone enter via the **uniform**
+  component, so they have little influence on the estimate of the
+  transition point. Individuals that provide no information about the
+  boundary contribute only a constant term to the likelihood.
 
-#### Focus on data in the transition zone
+- **Decline in one class is matched with increase in the other**  
+  In many transition problems (such as length at maturity), the density
+  of the lower class must decline in exactly the region where the
+  higher-class density increases. STAGE encodes this by fitting a
+  **shared standard deviation** to the upper tail of the lower class and
+  the lower tail of the higher class. By jointly modelling these tails,
+  any change in one class’s decline implies a matching change in the
+  other’s rise. This ensures that the estimated transition point is
+  driven by the **relative** behaviour of the two densities, not by the
+  marginal behaviour of either class on its own.
 
-Observations far from the transition zone enter via the **uniform**
-component, so they have little influence on the estimate of the
-transition point. Individuals that provide no information about the
-boundary contribute only a constant term to the likelihood.
-
-#### Decline in one class is matched with increase in the other
-
-In many transition problems (such as length at maturity), the density of
-the lower class must decline in exactly the region where the
-higher-class density increases. STAGE encodes this by fitting a **shared
-standard deviation** to the upper tail of the lower class and the lower
-tail of the higher class. By jointly modelling these tails, any change
-in one class’s decline implies a matching change in the other’s rise.
-This ensures that the estimated transition point is driven by the
-**relative** behaviour of the two densities, not by the marginal
-behaviour of either class on its own.
-
-#### Bayesian inference
-
-STAGE is presented under a Bayesian paradigm, providing the flexibility
-to incorporate prior information and to quantify uncertainty in any
-derived parameter or quantity. Multi-population structure is handled
-naturally through a hierarchical model: uncertainty in the densities
-propagates directly to uncertainty in $m_{50}$, and population-level
-patterns can be estimated efficiently.
+- **Bayesian inference**  
+  STAGE is presented under a Bayesian paradigm, providing the
+  flexibility to incorporate prior information and to quantify
+  uncertainty in any derived parameter or quantity. Multi-population
+  structure is handled naturally through a hierarchical model:
+  uncertainty in the densities propagates directly to uncertainty in
+  $m_{50}$, and population-level patterns can be estimated efficiently.
 
 The STAGE likelihood is a structured mixture inspired by the
 plateau–Gaussian formulation of Lau & Krumscheid (2022), adapted
 specifically for transition-point estimation.
+
+------------------------------------------------------------------------
 
 ## References
 
