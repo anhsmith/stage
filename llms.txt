@@ -1,12 +1,11 @@
-# 📦 stage ![](reference/figures/logo.png)
+# stage
 
 The **stage** package implements the **STAGE** model (**S**tate
 **T**ransition **A**nalysis via **G**enerative **E**stimator), a
 Bayesian generative classifier for estimating **transition points
-(m50)** from two groups—at what value of $x$ does $y = 1$ become
-probable. An example is *length-at-maturity* problems, where $y$ is
-binary maturity status, and $x$ is a continuous measurement, such as
-length.
+(m50)** from two groups—at what value of $x$ does $y$ become probable.
+An example is *length-at-maturity* problems, where $y$ is binary
+maturity status, and $x$ is a continuous measurement, such as length.
 
 Existing methods for these sorts of applications have important
 limitations (see below), which the STAGE model overcomes.

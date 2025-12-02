@@ -67,8 +67,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Motivation</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Motivation</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/anhsmith/stage/blob/master/vignettes/motivation.Rmd" class="external-link"><code>vignettes/motivation.Rmd</code></a></small>
@@ -253,47 +252,47 @@ Gaussian rise out of the transition → uniform plateau.</li>
 <div class="section level4">
 <h4 id="robust-to-class-imbalance">Robust to class imbalance<a class="anchor" aria-label="anchor" href="#robust-to-class-imbalance"></a>
 </h4>
-<p>STAGE (like LDA) is a generative model, so it is less effected by
-class imbalance. Inferences on
+<p>STAGE (like LDA) is a generative model, so it is far less affected by
+class imbalance. Inferences about
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-depend on the <strong>relative shapes</strong> of the densities, rather
-than the counts at any particular value of
+depend on the <strong>relative shapes</strong> of the class-conditional
+densities, rather than the number of observations in each class at any
+particular value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
-In contrast, discriminative models (e.g. logistic regression) are very
-sensitive class imbalance.</p>
+In contrast, discriminative models (e.g., logistic regression) are
+highly sensitive to class imbalance because they implicitly use the
+empirical class frequencies as priors.</p>
 </div>
 <div class="section level4">
 <h4 id="focus-on-data-in-the-transition-zone">Focus on data in the transition zone<a class="anchor" aria-label="anchor" href="#focus-on-data-in-the-transition-zone"></a>
 </h4>
 <p>Observations far from the transition zone enter via the
-<strong>uniform</strong> component,<br>
-so they cannot distort estimates of the transition point. Individuals
-providing no information about the boundary contribute only a constant
-term to the likelihood.</p>
+<strong>uniform</strong> component, so they have little influence on the
+estimate of the transition point. Individuals that provide no
+information about the boundary contribute only a constant term to the
+likelihood.</p>
 </div>
 <div class="section level4">
 <h4 id="decline-in-one-class-is-matched-with-increase-in-the-other">Decline in one class is matched with increase in the other<a class="anchor" aria-label="anchor" href="#decline-in-one-class-is-matched-with-increase-in-the-other"></a>
 </h4>
-<p>In a transition problem, the density of the lower class must fall
-in<br>
-the region where the higher class density rises. The STAGE model fits a
-<strong>common standard deviation</strong> parameter to the upper tail
-of the lower class and the lower tail of the higher class. By jointly
-modelling the tails in the transition zone, a change in the tail of one
-class necessarily implies a<br>
-corresponding change in the other. This ensures that the estimated
-transition point is determined by the relative behaviour of both
-densities, not by the marginal behaviour of either class.</p>
+<p>In many transition problems (such as length at maturity), the density
+of the lower class must decline in exactly the region where the
+higher-class density increases. STAGE encodes this by fitting a
+<strong>shared standard deviation</strong> to the upper tail of the
+lower class and the lower tail of the higher class. By jointly modelling
+these tails, any change in one class’s decline implies a matching change
+in the other’s rise. This ensures that the estimated transition point is
+driven by the <strong>relative</strong> behaviour of the two densities,
+not by the marginal behaviour of either class on its own.</p>
 </div>
 <div class="section level4">
 <h4 id="bayesian-inference">Bayesian inference<a class="anchor" aria-label="anchor" href="#bayesian-inference"></a>
 </h4>
-<p>The STAGE model is offered under a Bayesian paradigm, as it gives the
-flexibility<br>
-to incorporate prior information and quantify uncertainty in any derived
-parameter or quantity. Multi-population structure is handled through a
-hierarchical model. Uncertainty in the densities propagates
-automatically to uncertainty in
+<p>STAGE is presented under a Bayesian paradigm, providing the
+flexibility to incorporate prior information and to quantify uncertainty
+in any derived parameter or quantity. Multi-population structure is
+handled naturally through a hierarchical model: uncertainty in the
+densities propagates directly to uncertainty in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
 and population-level patterns can be estimated efficiently.</p>
 <p>The STAGE likelihood is a structured mixture inspired by the
