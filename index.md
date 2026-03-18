@@ -33,22 +33,22 @@ underway.
 # Package features
 
 - [`fit_stage()`](https://anhsmith.github.io/stage/reference/fit_stage.md)
-  — fit STAGE model (single or multi-population)  
+  — fit STAGE model (single or multi-population)
 - [`transition_point()`](https://anhsmith.github.io/stage/reference/transition_point.md)
-  — summarise posteriors for ***m50***  
+  — summarise posteriors for ***m50***
 - [`predict.stage_fit()`](https://anhsmith.github.io/stage/reference/predict.stage_fit.md)
-  — predict class probabilities or labels  
+  — predict class probabilities or labels
 - [`stage_priors()`](https://anhsmith.github.io/stage/reference/stage_priors.md)
-  — prior helper  
+  — prior helper
 - [`get_cmdstan_model()`](https://anhsmith.github.io/stage/reference/get_cmdstan_model.md)
   — internal CmdStan compiler helper
 
 Planned additions:
 
-- Reparameterised logistic/HOF model  
-- Bayesian LDA  
-- Posterior predictive classification  
-- Diagnostic + visualisation tools  
+- Reparameterised logistic/HOF model
+- Bayesian LDA
+- Posterior predictive classification
+- Diagnostic + visualisation tools
 - Full vignette
 
 ------------------------------------------------------------------------
@@ -127,24 +127,25 @@ transition_point(fit2)
 
 This returns:
 
-- global m50  
-- group-specific m50_pop\[j\]
+- global transition point `m50`
+- population-specific transition points `m50_pop[j]`
 
 ------------------------------------------------------------------------
 
 # **Model summary**
 
-Each class is a **uniform plateau** with a **Gaussian edge**.  
-Key parameters:
+Each class is a **uniform plateau** with a **Gaussian edge**. Key
+parameters:
 
-- `m50` — transition centre  
-- `d` — width of transition region  
+- `m50` — transition point where P(y=1\|x) = 0.5 (direct sampling
+  parameter)
+- `d` — width of transition region
 - `sigma_x` — Gaussian spread
 
 Hierarchical structure:
 
 ``` md
-m50_pop[j] = mu_m50 + z[j] * sigma_alpha
+m50_pop[j] = m50 + z[j] * sigma_alpha
 ```
 
 (non-centred parameterisation for efficient sampling)

@@ -7,3 +7,5 @@
 - [The STAGE
   Likelihood](https://anhsmith.github.io/stage/articles/likelihood.md):
 - [Motivation](https://anhsmith.github.io/stage/articles/motivation.md):
+- [Simulation Study
+  Design](https://anhsmith.github.io/stage/articles/simulation_study_plan.md):

@@ -1,6 +1,8 @@
 # Posterior summaries of STAGE transition points (m50)
 
-Posterior summaries of STAGE transition points (m50)
+Returns posterior summaries of \\m\_{50}\\, the value of \\x\\ where
+\\P(y=1 \| x) = 0.5\\. Under equal class priors, \\m\_{50}\\ is the
+direct sampling parameter of the STAGE model.
 
 ## Usage
 
@@ -27,4 +29,7 @@ transition_point(object, population = NULL, ...)
 
 ## Value
 
-A named list or numeric vector with posterior summary stats.
+A named list. Always contains `global` (posterior summary of the global
+`m50`). For J \> 1 models, also contains `pop1`, `pop2`, etc. for each
+population-specific transition point. Each summary is a named numeric
+vector with `mean`, `median`, `q2.5`, `q97.5`.

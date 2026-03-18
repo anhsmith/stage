@@ -42,7 +42,7 @@ head(tibble(x = x, y = y))
 ## Fitting the STAGE model
 
 We now fit the STAGE model using
-[`fit_stage()`](https://anhsmith.github.io/stage/reference/fit_stage.md).  
+[`fit_stage()`](https://anhsmith.github.io/stage/reference/fit_stage.md).
 Because STAGE is a Bayesian model fit via Stan, we keep `chains` and
 `iter` small in this vignette to keep runtime acceptable; for real
 applications you should increase these.
@@ -66,8 +66,9 @@ returns posterior summaries of the global transition point $m_{50}$.
 transition_point(fit)
 ```
 
-Typical output is a small data frame with posterior mean, median, and
-credible intervals for `m50`.
+For a single-population fit, this returns a list with a single element
+`global`: a named numeric vector with posterior `mean`, `median`,
+`q2.5`, and `q97.5`.
 
 ### Predicting maturity probabilities
 
@@ -92,11 +93,11 @@ plot(
 In many applications we have multiple populations (e.g. regions, stocks,
 or sexes) and we expect:
 
-- a **shared average transition point** $\mu_{m50}$, and
+- a **shared global transition point** $m_{50}$, and
 - **population-specific deviations**.
 
 STAGE implements this using a hierarchical structure
-$$m50_{\text{pop}{\lbrack j\rbrack}} = \mu_{m50} + z_{j}\,\sigma_{\alpha},$$
+$$\texttt{𝚖𝟻𝟶\_𝚙𝚘𝚙}\lbrack j\rbrack = m_{50} + z_{j}\,\sigma_{\alpha},$$
 with a non-centred parameterisation for efficient sampling.
 
 A simple two-group example:
@@ -114,10 +115,12 @@ fit2 <- fit_stage(
 transition_point(fit2)
 ```
 
-`transition_point(fit2)` returns both:
+`transition_point(fit2)` returns a list with:
 
-- a global `m50` (overall mean transition)  
-- group-specific `m50_pop[j]` values.
+- `global`: posterior summary of the global $m_{50}$ (`mean`, `median`,
+  `q2.5`, `q97.5`), and
+- `pop1`, `pop2`, …: population-specific entries with summaries of
+  `m50_pop[j]`.
 
 ## Summary
 

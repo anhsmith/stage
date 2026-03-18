@@ -88,7 +88,7 @@ on variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 between two classes—for example, the length at which individuals
 transition from immature to mature. The model produces a posterior
-distribution for key parameter
+distribution for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
 representing the value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
@@ -105,12 +105,11 @@ maturity). Each class is fit with an asymmetric
 <strong>plateau–Gaussian</strong> density:</p>
 <ul>
 <li>the lower class has a <strong>uniform plateau</strong> followed by a
-<strong>Gaussian tail down into the transition</strong>,<br>
-</li>
+<strong>Gaussian tail down into the transition</strong>,</li>
 <li>the higher class has a <strong>Gaussian tail up out of the
 transition</strong> followed by a <strong>uniform plateau</strong>.</li>
 </ul>
-<p><img src="likelihood_files/figure-html/visualize-1.png" class="r-plt" width="576"></p>
+<p><img src="likelihood_files/figure-html/visualize-1.png" class="r-plt" alt="" width="576"></p>
 <p>This construction focuses inference on the <strong>overlap
 region</strong> and prevents distant observations (e.g. very small
 immatures, very large matures) from unduly influencing the transition
@@ -154,8 +153,7 @@ where</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
 is a continuous covariate (e.g., length), truncated to an interval
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>L</mi><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[L, U]</annotation></semantics></math>,
-and<br>
-</li>
+and</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">y_i \in \{0, 1\}</annotation></semantics></math>
 is a binary indicator of state (e.g., immature / mature).</li>
@@ -183,7 +181,7 @@ up to the upper truncation
 </ul>
 <p>The <strong>transition point</strong>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-is defined as the value of
+is the value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 where the probability of observing either class is equal:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo>∣</mo><mi>x</mi><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
@@ -204,16 +202,13 @@ and
 (denoted <code>sigma_x</code> in the Stan code) controls the spread
 (standard deviation) of the Gaussian tails.</li>
 </ul>
-<p>By allowing different behaviours on either side of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
+<p>By allowing different behaviours on either side of the transition,
 the model can capture <strong>asymmetric transition patterns</strong>:
 the immature class can decline towards the transition at a different
 rate than the mature class rises out of it.</p>
 <p>This is particularly useful in settings where:</p>
 <ul>
-<li>the boundary between classes is <strong>not sharp</strong>,
-and<br>
-</li>
+<li>the boundary between classes is <strong>not sharp</strong>, and</li>
 <li>the data exhibit <strong>gradual overlap</strong> between the two
 classes.</li>
 </ul>
@@ -284,8 +279,7 @@ the unnormalised log-density is</p>
 <ul>
 <li>the Gaussian tail is <strong>below</strong>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mu_1</annotation></semantics></math>,
-and<br>
-</li>
+and</li>
 <li>the plateau covers the upper region
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>μ</mi><mn>1</mn></msub><mo>,</mo><mi>U</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[\mu_1, U]</annotation></semantics></math>.</li>
 </ul>
@@ -307,21 +301,21 @@ and
 chosen so that the densities integrate to 1.</p>
 <p>For the immature class
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y = 0</annotation></semantics></math>):</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>0</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mi>L</mi><msub><mi>μ</mi><mn>0</mn></msub></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>0</mn></msub><mi>∞</mi></msubsup><mfrac><mn>1</mn><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mi>σ</mi></mrow></mfrac><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>−</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>0</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mi>L</mi><msub><mi>μ</mi><mn>0</mn></msub></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>0</mn></msub><mi>∞</mi></msubsup><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>−</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 C_0
 = \int_L^{\mu_0} 1 \, dx
   + \int_{\mu_0}^{\infty}
-    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+    \exp\!\left(
       -\frac{(x - \mu_0)^2}{2\sigma^2}
     \right) dx
 = (\mu_0 - L) + \frac{\sqrt{2\pi}\,\sigma}{2}.
 </annotation></semantics></math></p>
 <p>For the mature class
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y = 1</annotation></semantics></math>):</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><msub><mi>μ</mi><mn>1</mn></msub></msubsup><mfrac><mn>1</mn><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mi>σ</mi></mrow></mfrac><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>1</mn></msub><mi>U</mi></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>=</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><msub><mi>μ</mi><mn>1</mn></msub></msubsup><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>x</mi><mo>+</mo><msubsup><mo>∫</mo><msub><mi>μ</mi><mn>1</mn></msub><mi>U</mi></msubsup><mn>1</mn><mspace width="0.167em"></mspace><mi>d</mi><mi>x</mi><mo>=</mo><mfrac><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi></mrow><mn>2</mn></mfrac><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 C_1
 = \int_{-\infty}^{\mu_1}
-    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+    \exp\!\left(
       -\frac{(x - \mu_1)^2}{2\sigma^2}
     \right) dx
   + \int_{\mu_1}^{U} 1 \, dx
@@ -333,8 +327,7 @@ C_1
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>−</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\mu_0 - L)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(U - \mu_1)</annotation></semantics></math>
-are the <strong>widths of the uniform plateaus</strong>,<br>
-</li>
+are the <strong>widths of the uniform plateaus</strong>,</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><mi>σ</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\sqrt{2\pi}\,\sigma / 2</annotation></semantics></math>
 is the <strong>contribution from the half-Gaussian tail</strong>.</li>
@@ -374,12 +367,13 @@ the scale of the data and prior biological knowledge.</p>
 <ul>
 <li>
 <strong>Transition point</strong>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>:</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
+(Stan parameter <code>m50</code>):</li>
 </ul>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mn>50</mn></msub><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1300</mn><mo>,</mo><mn>50</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
 m_{50} \sim \mathcal{N}(1300, 50),
 </annotation></semantics></math></p>
-<p>which centres the transition around 1300 (mm) with moderate
+<p>which centres the transition point around 1300 (mm) with moderate
 uncertainty.</p>
 <ul>
 <li>
@@ -404,6 +398,12 @@ is the distance between the class-specific Gaussian centres.</p>
 </annotation></semantics></math></p>
 <p>representing prior beliefs about the scale of variability in the
 transition tails.</p>
+<p>Because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+and <code>sigma_x</code> are constrained to be positive in the Stan
+model, their Normal priors are effectively <strong>half-Normal</strong>
+distributions (the prior mass below zero is folded onto the positive
+half).</p>
 <p>In practice, you should adapt these priors to your scale (e.g.,
 lengths, ages) and prior biological knowledge. The STAGE implementation
 allows you to pass in hyperparameters via helper functions such as
@@ -426,28 +426,18 @@ and the width parameter
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
 controls the <strong>distance</strong> between the immature and mature
-Gaussian means,<br>
-</li>
+Gaussian means,</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-remains the <strong>midpoint</strong> between them.</li>
+is the <strong>midpoint</strong> between them.</li>
 </ul>
-<p>This is convenient both conceptually and computationally: it allows
-the model to focus directly on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
-which are often the primary scientific targets, while
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\mu_0</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mu_1</annotation></semantics></math>
-are derived quantities.</p>
 </div>
 <div class="section level2">
 <h2 id="from-class-densities-to-class-probabilities-bayes-rule">From class densities to class probabilities (Bayes rule)<a class="anchor" aria-label="anchor" href="#from-class-densities-to-class-probabilities-bayes-rule"></a>
 </h2>
 <p>The likelihood above defines the <strong>class-conditional
-densities</strong><br><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_0(x) = p(x \mid y = 0)</annotation></semantics></math>
+densities</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_0(x) = p(x \mid y = 0)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_1(x) = p(x \mid y = 1)</annotation></semantics></math>
 on
@@ -474,9 +464,8 @@ we use Bayes rule:</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\pi_1</annotation></semantics></math>
-are the prior class probabilities<br>
-(e.g., prior probabilities of being immature or mature <em>before</em>
-seeing
+are the prior class probabilities (e.g., prior probabilities of being
+immature or mature <em>before</em> seeing
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>).</p>
 <p>In many applications, such as estimating length-at-maturity, we are
 interested in a transition point that is <strong>not driven by sample
@@ -509,45 +498,40 @@ where the two classes are equally probable:</p>
 </annotation></semantics></math></p>
 <p>Using Bayes rule with equal class priors, this equality is equivalent
 to</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>=</mo><mfrac><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mspace width="1.0em"></mspace><mo>⇔</mo><mspace width="1.0em"></mspace><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\frac{f_1(m_{50})}{f_0(m_{50}) + f_1(m_{50})}
-=
-\frac{f_0(m_{50})}{f_0(m_{50}) + f_1(m_{50})}
-\quad\Longleftrightarrow\quad
-f_0(m_{50}) = f_1(m_{50}).
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mn>50</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+f_0(m_{50}) = f_1(m_{50}),
 </annotation></semantics></math></p>
-<p>Thus,
+<p>i.e. the two normalised class densities are equal at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>.</p>
+<p><strong>Why
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-can be viewed in two equivalent ways:</p>
-<ol style="list-style-type: decimal">
-<li>As a <strong>model parameter</strong> that sets the midpoint between
-the Gaussian centres
+is the midpoint between
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\mu_0</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mu_1</annotation></semantics></math>
-via<br><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mn>0</mn></msub><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub><mo>−</mo><mfrac><mi>d</mi><mn>2</mn></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>μ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub><mo>+</mo><mfrac><mi>d</mi><mn>2</mn></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mu_0 = m_{50} - \frac{d}{2}, \qquad
-\mu_1 = m_{50} + \frac{d}{2},
-</annotation></semantics></math>
-</li>
-<li>As the <strong>Bayes-optimal classifier cut-point</strong> where the
-posterior class probabilities for immature and mature are both 0.5.</li>
-</ol>
-<p>In practice, the STAGE model samples
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mu_1</annotation></semantics></math>.</strong>
+In the transition region
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mn>0</mn></msub><mo>&lt;</mo><mi>x</mi><mo>&lt;</mo><msub><mi>μ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mu_0 &lt; x &lt; \mu_1</annotation></semantics></math>),
+both unnormalised densities take Gaussian form:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>f</mi><mo accent="true">̃</mo></mover><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>f</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\tilde f_0(x) = \exp\!\left(-\frac{(x - \mu_0)^2}{2\sigma^2}\right), \qquad
+\tilde f_1(x) = \exp\!\left(-\frac{(x - \mu_1)^2}{2\sigma^2}\right).
+</annotation></semantics></math></p>
+<p>Since both Gaussians share the same
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
+the unnormalised densities are equal at the arithmetic midpoint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>x</mi><mo>*</mo></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>+</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub></mrow><annotation encoding="application/x-tex">x^* = (\mu_0 + \mu_1)/2 = m_{50}</annotation></semantics></math>.
+With equal class priors, the normalising constants
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>0</mn></msub><annotation encoding="application/x-tex">C_0</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
-from their posterior distribution. For any posterior draw, we can
-compute
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y = 1 \mid x)</annotation></semantics></math>
-via Bayes rule and verify that the point where this curve crosses 0.5
-aligns with the sampled value of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>.
-This makes the interpretation of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mn>1</mn></msub><annotation encoding="application/x-tex">C_1</annotation></semantics></math>
+cancel in the likelihood ratio, so the 50% crossing point is exactly
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
-as a “50% maturity” transition point directly linked to the underlying
-generative model and Bayes-optimal classifier.</p>
+regardless of the survey bounds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>U</mi><annotation encoding="application/x-tex">U</annotation></semantics></math>.
+This is the key invariance property: changing the sampling domain does
+not shift the estimated transition point.</p>
 </div>
 <div class="section level3">
 <h3 id="visualising-a-single-stage-transition">Visualising a single STAGE transition<a class="anchor" aria-label="anchor" href="#visualising-a-single-stage-transition"></a>
@@ -558,7 +542,7 @@ generative model and Bayes-optimal classifier.</p>
 <li>the resulting transition probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(y=1 \mid x)</annotation></semantics></math>.</li>
 </ul>
-<p><img src="likelihood_files/figure-html/visualize-likelihood-1.png" class="r-plt" width="576"></p>
+<p><img src="likelihood_files/figure-html/visualize-likelihood-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 </div>
 <div class="section level2">
@@ -566,22 +550,19 @@ generative model and Bayes-optimal classifier.</p>
 </h2>
 <p>In the <code>stage</code> package:</p>
 <ul>
-<li>The single-population model uses parameters <code>m50</code>,
-<code>d</code>, and <code>sigma_x</code> that correspond to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
-in this vignette.</li>
+<li>The single-population model directly samples <code>m50</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>),
+<code>d</code>, and <code>sigma_x</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>).
+The transition point is a primary sampling parameter, not a derived
+quantity.</li>
 <li>The multi-population (hierarchical) model introduces
-population-specific transition points
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mn>50</mn><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">m_{50, j}</annotation></semantics></math>
-via a random-effects structure:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><msub><mn>50</mn><mrow><mtext mathvariant="normal">pop</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>j</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub><mo>=</mo><msub><mi>μ</mi><mrow><mi>m</mi><mn>50</mn></mrow></msub><mo>+</mo><msub><mi>z</mi><mi>j</mi></msub><mspace width="0.167em"></mspace><msub><mi>σ</mi><mi>α</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-m50_{\text{pop}[j]} = \mu_{m50} + z_j \, \sigma_\alpha,
+population-specific transition points via a random-effects structure:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="monospace">𝚖𝟻𝟶_𝚙𝚘𝚙</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mi>j</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>m</mi><mn>50</mn></msub><mo>+</mo><msub><mi>z</mi><mi>j</mi></msub><mspace width="0.167em"></mspace><msub><mi>σ</mi><mi>α</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\texttt{m50\_pop}[j] = m_{50} + z_j \, \sigma_\alpha,
 </annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mi>m</mi><mn>50</mn></mrow></msub><annotation encoding="application/x-tex">\mu_{m50}</annotation></semantics></math>
-is the overall mean transition point,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mn>50</mn></msub><annotation encoding="application/x-tex">m_{50}</annotation></semantics></math>
+is the global mean transition point,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mi>j</mi></msub><annotation encoding="application/x-tex">z_j</annotation></semantics></math>
 are standard-normal effects, and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>α</mi></msub><annotation encoding="application/x-tex">\sigma_\alpha</annotation></semantics></math>

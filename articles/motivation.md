@@ -5,7 +5,7 @@
 Estimating a transition point between two classes—the point along a
 continuous variable $x$ where the probability shifts from one class to
 the other for binary variable $y$—is a simple and common task. For
-example, the length at which individuals of a species shifts from
+example, the length at which individuals of a species shift from
 immature to mature is an important life-history parameter.
 
 Given the data below, we can easily identify a broad “transition
@@ -16,9 +16,23 @@ reaches 50%.
 
 ${\widehat{m}}_{50} = \{ x:\widehat{\Pr}(y = 1 \mid x) = 0.5\}$
 
-In maturity studies, this point might be called “length at maturity”. To
-the left of $m_{50}$, class 0 is more likely; to the right of $m_{50}$,
-class 1 is more likely.
+In maturity studies, this point might be called “length at 50%
+maturity”. To the left of $m_{50}$, class 0 is more likely; to the right
+of $m_{50}$, class 1 is more likely.
+
+A critical point about what $m_{50}$ represents: it is a **biological
+property of an individual**, not a property of the sampled population.
+The question being asked is: *for a given individual of length $x$, at
+what length does the evidence from length alone make maturity more
+probable than immaturity?* The answer depends only on the
+length-conditional distributions of mature and immature individuals—it
+has nothing to do with how many of each were sampled. In practice,
+sampling is almost always biased with respect to class: gear
+selectivity, habitat preferences, and variation in sampling effort
+routinely produce samples with very different proportions of mature and
+immature individuals, none of which reflects the underlying biology. A
+valid estimator of $m_{50}$ must be independent of these sampling
+vagaries.
 
 ### ![](motivation_files/figure-html/unnamed-chunk-1-1.png)
 
@@ -61,16 +75,29 @@ where the fitted probability equals 0.5.
 ![](motivation_files/figure-html/unnamed-chunk-3-1.png)
 
 While simple and familiar, *logistic regression (and other
-discriminative models) are highly sensitive to class imbalance*. The
-discriminative model estimates the probability of class in the sample,
-not the population.
+discriminative models) give the wrong answer to the question being
+asked*. A discriminative model estimates $\Pr(y = 1 \mid x)$ directly
+from the data, which means the fitted curve reflects the class
+composition of the *sample*, not the biology of the *individual*. The
+intercept of the logistic curve is determined partly by the ratio of
+mature to immature individuals in the data. Change the sampling effort,
+the gear, or the habitat surveyed, and the intercept shifts—even if the
+underlying biology is unchanged.
 
-Unless sampling is independent of both class and size, the estimated
-curve can be seriously biased. If one class has a much greater sample
-size than the other (i.e., they are unbalanced), logistic regression
-effectively places more weight on the more abundant class. This pulls
-the estimated transition curve toward the majority class, even though
-class counts should not determine where the transition occurs.
+This is not merely a practical inconvenience. It means logistic
+regression is answering a subtly different question: *what is the
+probability that a randomly selected individual from this particular
+sample, of length $x$, is mature?* That is a question about the sample,
+not about the species. For estimating $m_{50}$ as a biological
+parameter, it is the wrong question.
+
+The consequence is that logistic regression estimates of $m_{50}$ are
+sensitive to class imbalance in the sample. If immature individuals are
+over-represented—as commonly occurs when sampling effort concentrates in
+juvenile habitats, or when small-mesh gear retains juveniles
+preferentially—the fitted curve shifts toward the immature class and
+$m_{50}$ is overestimated. The reverse occurs when mature individuals
+dominate the sample.
 
 In the plot below, 85% of the class 0 observations have been removed,
 resulting a highly imbalanced dataset and a biased estimate of $m_{50}$.
@@ -151,7 +178,9 @@ transition points.
 What is needed is a model for estimating transition points that:
 
 - is probabilistic and can quantify uncertainty,
-- robust to class imbalance, and
+- estimates a biological property of individuals, not a property of the
+  sample,
+- is independent of class prevalence in the data, and
 - focuses inference on data in the overlap region, rather than distant
   data.
 
@@ -171,14 +200,19 @@ fit with an **asymmetric Uniform–Gaussian mixture**.
 
 The STAGE model has the following key properties:
 
-- **Robust to class imbalance**  
-  STAGE (like LDA) is a generative model, so it is far less affected by
-  class imbalance. Inferences about $m_{50}$ depend on the **relative
-  shapes** of the class-conditional densities, rather than the number of
-  observations in each class at any particular value of $x$. In
-  contrast, discriminative models (e.g., logistic regression) are highly
-  sensitive to class imbalance because they implicitly use the empirical
-  class frequencies as priors.
+- **Asks the right biological question**  
+  STAGE estimates $m_{50}$ as the point where the two class-conditional
+  densities are equal, using equal class priors. This directly answers
+  the question of interest: at what length is an individual of unknown
+  maturity status equally likely to be mature or immature, based on
+  length alone? Because the class priors are fixed at
+  $\pi_{0} = \pi_{1} = \frac{1}{2}$ and do not depend on sample
+  composition, the estimate of $m_{50}$ is by construction independent
+  of class imbalance in the data. Gear selectivity, habitat-driven
+  sampling bias, and variation in field effort cannot distort the
+  estimate, because the prevalence of each class in the sample plays no
+  role in the likelihood. This is not merely robustness to imbalance—it
+  is immunity, and it follows directly from asking the right question.
 
 - **Focus on data in the transition zone**  
   Observations far from the transition zone enter via the **uniform**

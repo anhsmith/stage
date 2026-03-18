@@ -50,9 +50,8 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stage_priors</span><span class="op">(</span></span>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior_mu_m50_mu <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">0</span>,</span>
-<span>  prior_mu_m50_tau <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">6</span> <span class="kw">else</span> <span class="fl">100</span>,</span>
+<span>  prior_m50_mu <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">0</span>,</span>
+<span>  prior_m50_tau <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">6</span> <span class="kw">else</span> <span class="fl">100</span>,</span>
 <span>  prior_d_mu <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">4</span> <span class="kw">else</span> <span class="fl">0</span>,</span>
 <span>  prior_d_tau <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">4</span> <span class="kw">else</span> <span class="fl">100</span>,</span>
 <span>  prior_sigma_x_tau <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">100</span>,</span>
@@ -64,16 +63,16 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-x-y">x, y<a class="anchor" aria-label="anchor" href="#arg-x-y"></a></dt>
-<dd><p>Optional data vectors to set sensible defaults.</p></dd>
+<dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
+<dd><p>Optional data vector to set sensible defaults.</p></dd>
 
 
-<dt id="arg-prior-mu-m-mu">prior_mu_m50_mu<a class="anchor" aria-label="anchor" href="#arg-prior-mu-m-mu"></a></dt>
-<dd><p>Mean of the prior on the global m50.</p></dd>
+<dt id="arg-prior-m-mu">prior_m50_mu<a class="anchor" aria-label="anchor" href="#arg-prior-m-mu"></a></dt>
+<dd><p>Mean of the prior on the global transition point m50.</p></dd>
 
 
-<dt id="arg-prior-mu-m-tau">prior_mu_m50_tau<a class="anchor" aria-label="anchor" href="#arg-prior-mu-m-tau"></a></dt>
-<dd><p>SD of the prior on the global m50.</p></dd>
+<dt id="arg-prior-m-tau">prior_m50_tau<a class="anchor" aria-label="anchor" href="#arg-prior-m-tau"></a></dt>
+<dd><p>SD of the prior on the global transition point m50.</p></dd>
 
 
 <dt id="arg-prior-d-mu">prior_d_mu<a class="anchor" aria-label="anchor" href="#arg-prior-d-mu"></a></dt>

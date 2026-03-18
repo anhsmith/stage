@@ -8,18 +8,18 @@ the STAGE model.
 STAGE is a **hierarchical Bayesian generative model** designed to
 estimate a **transition point** $m_{50}$ on variable $x$ between two
 classes—for example, the length at which individuals transition from
-immature to mature. The model produces a posterior distribution for key
-parameter $m_{50}$, representing the value of $x$ at which the
-probabilities $\Pr(y = 0)$ and $\Pr(y = 1)$ are equal. The model can
-also be used to derive other useful quantities (such as class
-probabilities $\Pr(y = 1 \mid x)$).
+immature to mature. The model produces a posterior distribution for
+$m_{50}$, representing the value of $x$ at which the probabilities
+$\Pr(y = 0)$ and $\Pr(y = 1)$ are equal. The model can also be used to
+derive other useful quantities (such as class probabilities
+$\Pr(y = 1 \mid x)$).
 
 Conceptually, STAGE is a **Bayesian generative classifier** for
 estimating a transition point (e.g. length at maturity). Each class is
 fit with an asymmetric **plateau–Gaussian** density:
 
 - the lower class has a **uniform plateau** followed by a **Gaussian
-  tail down into the transition**,  
+  tail down into the transition**,
 - the higher class has a **Gaussian tail up out of the transition**
   followed by a **uniform plateau**.
 
@@ -55,7 +55,7 @@ We observe pairs $\left( x_{i},y_{i} \right)$ for $i = 1,\ldots,N$,
 where
 
 - $x_{i}$ is a continuous covariate (e.g., length), truncated to an
-  interval $\lbrack L,U\rbrack$, and  
+  interval $\lbrack L,U\rbrack$, and
 - $y_{i} \in \{ 0,1\}$ is a binary indicator of state (e.g., immature /
   mature).
 
@@ -69,8 +69,8 @@ The model assumes that the distribution of $x$ conditional on state is
   below a point $\mu_{1}$, and **uniform** above $\mu_{1}$ up to the
   upper truncation $U$.
 
-The **transition point** $m_{50}$ is defined as the value of $x$ where
-the probability of observing either class is equal:
+The **transition point** $m_{50}$ is the value of $x$ where the
+probability of observing either class is equal:
 
 $$\Pr\left( y = 0 \mid x = m_{50} \right) = \Pr\left( y = 1 \mid x = m_{50} \right).$$
 
@@ -82,14 +82,14 @@ transition:
 - $\sigma$ (denoted `sigma_x` in the Stan code) controls the spread
   (standard deviation) of the Gaussian tails.
 
-By allowing different behaviours on either side of $m_{50}$, the model
-can capture **asymmetric transition patterns**: the immature class can
-decline towards the transition at a different rate than the mature class
-rises out of it.
+By allowing different behaviours on either side of the transition, the
+model can capture **asymmetric transition patterns**: the immature class
+can decline towards the transition at a different rate than the mature
+class rises out of it.
 
 This is particularly useful in settings where:
 
-- the boundary between classes is **not sharp**, and  
+- the boundary between classes is **not sharp**, and
 - the data exhibit **gradual overlap** between the two classes.
 
 ## Likelihood
@@ -137,7 +137,7 @@ $$\ell_{1}\left( x_{i} \mid \mu_{1},\sigma,U \right) = \begin{cases}
 
 Now:
 
-- the Gaussian tail is **below** $\mu_{1}$, and  
+- the Gaussian tail is **below** $\mu_{1}$, and
 - the plateau covers the upper region
   $\left\lbrack \mu_{1},U \right\rbrack$.
 
@@ -154,16 +154,16 @@ constants $C_{0}$ and $C_{1}$ chosen so that the densities integrate to
 
 For the immature class ($y = 0$):
 
-$$C_{0} = \int_{L}^{\mu_{0}}1\, dx + \int_{\mu_{0}}^{\infty}\frac{1}{\sqrt{2\pi}\sigma}\exp\!\left( - \frac{\left( x - \mu_{0} \right)^{2}}{2\sigma^{2}} \right)dx = \left( \mu_{0} - L \right) + \frac{\sqrt{2\pi}\,\sigma}{2}.$$
+$$C_{0} = \int_{L}^{\mu_{0}}1\, dx + \int_{\mu_{0}}^{\infty}\exp\!\left( - \frac{\left( x - \mu_{0} \right)^{2}}{2\sigma^{2}} \right)dx = \left( \mu_{0} - L \right) + \frac{\sqrt{2\pi}\,\sigma}{2}.$$
 
 For the mature class ($y = 1$):
 
-$$C_{1} = \int_{- \infty}^{\mu_{1}}\frac{1}{\sqrt{2\pi}\sigma}\exp\!\left( - \frac{\left( x - \mu_{1} \right)^{2}}{2\sigma^{2}} \right)dx + \int_{\mu_{1}}^{U}1\, dx = \frac{\sqrt{2\pi}\,\sigma}{2} + \left( U - \mu_{1} \right).$$
+$$C_{1} = \int_{- \infty}^{\mu_{1}}\exp\!\left( - \frac{\left( x - \mu_{1} \right)^{2}}{2\sigma^{2}} \right)dx + \int_{\mu_{1}}^{U}1\, dx = \frac{\sqrt{2\pi}\,\sigma}{2} + \left( U - \mu_{1} \right).$$
 
 Intuitively:
 
 - $\left( \mu_{0} - L \right)$ and $\left( U - \mu_{1} \right)$ are the
-  **widths of the uniform plateaus**,  
+  **widths of the uniform plateaus**,
 - $\sqrt{2\pi}\,\sigma/2$ is the **contribution from the half-Gaussian
   tail**.
 
@@ -190,11 +190,12 @@ and prior biological knowledge.
 
 By default, STAGE uses weakly informative normal priors:
 
-- **Transition point** $m_{50}$:
+- **Transition point** $m_{50}$ (Stan parameter `m50`):
 
 $$m_{50} \sim \mathcal{N}(1300,50),$$
 
-which centres the transition around 1300 (mm) with moderate uncertainty.
+which centres the transition point around 1300 (mm) with moderate
+uncertainty.
 
 - **Transition width** $d$:
 
@@ -211,6 +212,10 @@ $$\sigma \sim \mathcal{N}(100,50),$$
 representing prior beliefs about the scale of variability in the
 transition tails.
 
+Because $d$ and `sigma_x` are constrained to be positive in the Stan
+model, their Normal priors are effectively **half-Normal** distributions
+(the prior mass below zero is folded onto the positive half).
+
 In practice, you should adapt these priors to your scale (e.g., lengths,
 ages) and prior biological knowledge. The STAGE implementation allows
 you to pass in hyperparameters via helper functions such as
@@ -226,17 +231,12 @@ $$\mu_{0} = m_{50} - \frac{d}{2},\qquad\mu_{1} = m_{50} + \frac{d}{2}.$$
 Thus:
 
 - $d$ controls the **distance** between the immature and mature Gaussian
-  means,  
-- $m_{50}$ remains the **midpoint** between them.
-
-This is convenient both conceptually and computationally: it allows the
-model to focus directly on $m_{50}$ and $d$, which are often the primary
-scientific targets, while $\mu_{0}$ and $\mu_{1}$ are derived
-quantities.
+  means,
+- $m_{50}$ is the **midpoint** between them.
 
 ## From class densities to class probabilities (Bayes rule)
 
-The likelihood above defines the **class-conditional densities**  
+The likelihood above defines the **class-conditional densities**
 $f_{0}(x) = p(x \mid y = 0)$ and $f_{1}(x) = p(x \mid y = 1)$ on
 $\lbrack L,U\rbrack$, obtained by normalising the unnormalised densities
 ${\widetilde{f}}_{k}(x) = \exp\{\ell_{k}(x)\}$ with the constants
@@ -251,9 +251,8 @@ and similarly
 
 $$\Pr(y = 0 \mid x) = \frac{\pi_{0}f_{0}(x)}{\pi_{0}f_{0}(x) + \pi_{1}f_{1}(x)},$$
 
-where $\pi_{0}$ and $\pi_{1}$ are the prior class probabilities  
-(e.g., prior probabilities of being immature or mature *before* seeing
-$x$).
+where $\pi_{0}$ and $\pi_{1}$ are the prior class probabilities (e.g.,
+prior probabilities of being immature or mature *before* seeing $x$).
 
 In many applications, such as estimating length-at-maturity, we are
 interested in a transition point that is **not driven by sample sizes or
@@ -275,23 +274,24 @@ $$\Pr\left( y = 0 \mid x = m_{50} \right) = \Pr\left( y = 1 \mid x = m_{50} \rig
 
 Using Bayes rule with equal class priors, this equality is equivalent to
 
-$$\left. \frac{f_{1}\left( m_{50} \right)}{f_{0}\left( m_{50} \right) + f_{1}\left( m_{50} \right)} = \frac{f_{0}\left( m_{50} \right)}{f_{0}\left( m_{50} \right) + f_{1}\left( m_{50} \right)}\quad\Leftrightarrow\quad f_{0}\left( m_{50} \right) = f_{1}\left( m_{50} \right). \right.$$
+$$f_{0}\left( m_{50} \right) = f_{1}\left( m_{50} \right),$$
 
-Thus, $m_{50}$ can be viewed in two equivalent ways:
+i.e. the two normalised class densities are equal at $m_{50}$.
 
-1.  As a **model parameter** that sets the midpoint between the Gaussian
-    centres $\mu_{0}$ and $\mu_{1}$ via  
-    $$\mu_{0} = m_{50} - \frac{d}{2},\qquad\mu_{1} = m_{50} + \frac{d}{2},$$
-2.  As the **Bayes-optimal classifier cut-point** where the posterior
-    class probabilities for immature and mature are both 0.5.
+**Why $m_{50}$ is the midpoint between $\mu_{0}$ and $\mu_{1}$.** In the
+transition region ($\mu_{0} < x < \mu_{1}$), both unnormalised densities
+take Gaussian form:
 
-In practice, the STAGE model samples $m_{50}$, $d$, and $\sigma$ from
-their posterior distribution. For any posterior draw, we can compute
-$\Pr(y = 1 \mid x)$ via Bayes rule and verify that the point where this
-curve crosses 0.5 aligns with the sampled value of $m_{50}$. This makes
-the interpretation of $m_{50}$ as a “50% maturity” transition point
-directly linked to the underlying generative model and Bayes-optimal
-classifier.
+$${\widetilde{f}}_{0}(x) = \exp\!\left( - \frac{\left( x - \mu_{0} \right)^{2}}{2\sigma^{2}} \right),\qquad{\widetilde{f}}_{1}(x) = \exp\!\left( - \frac{\left( x - \mu_{1} \right)^{2}}{2\sigma^{2}} \right).$$
+
+Since both Gaussians share the same $\sigma$, the unnormalised densities
+are equal at the arithmetic midpoint
+$x^{*} = \left( \mu_{0} + \mu_{1} \right)/2 = m_{50}$. With equal class
+priors, the normalising constants $C_{0}$ and $C_{1}$ cancel in the
+likelihood ratio, so the 50% crossing point is exactly $m_{50}$
+regardless of the survey bounds $L$ and $U$. This is the key invariance
+property: changing the sampling domain does not shift the estimated
+transition point.
 
 ### Visualising a single STAGE transition
 
@@ -306,13 +306,13 @@ We can visualise a simple STAGE configuration, showing:
 
 In the `stage` package:
 
-- The single-population model uses parameters `m50`, `d`, and `sigma_x`
-  that correspond to $m_{50}$, $d$, and $\sigma$ in this vignette.
+- The single-population model directly samples `m50` ($m_{50}$), `d`,
+  and `sigma_x` ($\sigma$). The transition point is a primary sampling
+  parameter, not a derived quantity.
 - The multi-population (hierarchical) model introduces
-  population-specific transition points $m_{50,j}$ via a random-effects
-  structure:
-  $$m50_{\text{pop}{\lbrack j\rbrack}} = \mu_{m50} + z_{j}\,\sigma_{\alpha},$$
-  where $\mu_{m50}$ is the overall mean transition point, $z_{j}$ are
+  population-specific transition points via a random-effects structure:
+  $$\texttt{𝚖𝟻𝟶\_𝚙𝚘𝚙}\lbrack j\rbrack = m_{50} + z_{j}\,\sigma_{\alpha},$$
+  where $m_{50}$ is the global mean transition point, $z_{j}$ are
   standard-normal effects, and $\sigma_{\alpha}$ is the population-level
   standard deviation.
 

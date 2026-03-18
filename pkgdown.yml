@@ -5,7 +5,8 @@ articles:
   fit-stage: fit-stage.html
   likelihood: likelihood.html
   motivation: motivation.html
-last_built: 2025-12-02T00:42Z
+  simulation_study_plan: simulation_study_plan.html
+last_built: 2026-03-18T01:20Z
 urls:
   reference: https://anhsmith.github.io/stage/reference
   article: https://anhsmith.github.io/stage/articles
