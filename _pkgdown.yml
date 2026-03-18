@@ -34,7 +34,7 @@ navbar:
       text: "Links"
       menu:
       - text: "Sea Through Science"
-        href: https://wwww.seathrough.science
+        href: https://www.seathrough.science
       - text: "Stan"
         href: https://mc-stan.org
       - text: "CmdStanR"
