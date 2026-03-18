@@ -4,22 +4,21 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com", role = c("aut", "cre"))
 Description: The STAGE package implements Bayesian models for estimating 
-    transition points between two classes. The model developed specifically 
-    in this package is the STAGE model (State Transition Analysis via Generative 
-    Estimator), which fits a uniform (plateau) region and a Gaussian tail to 
-    each maturity stage. Other models offered include the 'HOF' parameterisation 
-    of logistic regression, and Linear Discriminant Analysis (all Bayesian). 
+    transition points between two classes. The flagship model is STAGE 
+    (State Transition Analysis via Generative Estimator), which fits a 
+    uniform plateau and a Gaussian tail to each class-conditional distribution. 
     The package provides functions for fitting single-population and 
-    hierarchical models, extracting posterior transition points (m50), 
-    producing predictions, and summarising uncertainty. The methods are 
-    designed for applications such as maturity estimation and other problems 
-    involving class overlap and asymmetric distributions.
+    hierarchical multi-population models, extracting posterior transition 
+    points (m50), producing predictions, and summarising uncertainty. 
+    The methods are designed for applications such as length-at-maturity 
+    estimation and other problems involving gradual class overlap.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 URL: https://github.com/anhsmith/stage, https://anhsmith.github.io/stage/
 BugReports: https://github.com/anhsmith/stage/issues
+Additional_repositories: https://stan-dev.r-universe.dev
 Imports: 
     cli,
     stats
@@ -33,4 +32,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Config/Needs/website: pkgdown, knitr, rmarkdown
+Config/Needs/website: pkgdown, knitr, rmarkdown, cmdstanr
