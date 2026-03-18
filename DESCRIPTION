@@ -23,15 +23,14 @@ BugReports: https://github.com/anhsmith/stage/issues
 Imports: 
     cli,
     stats
-Suggests: 
-    posterior,
+Suggests:
     cmdstanr,
     testthat,
     ggplot2,
-    tidyverse,
+    dplyr,
+    tibble,
+    tidyr,
     knitr,
     rmarkdown
-Remotes:
-    stan-dev/cmdstanr
 VignetteBuilder: knitr
 Config/Needs/website: pkgdown, knitr, rmarkdown

@@ -6,9 +6,8 @@
 \usage{
 stage_priors(
   x = NULL,
-  y = NULL,
-  prior_mu_m50_mu = if (!is.null(x)) stats::median(x) else 0,
-  prior_mu_m50_tau = if (!is.null(x)) diff(range(x))/6 else 100,
+  prior_m50_mu = if (!is.null(x)) stats::median(x) else 0,
+  prior_m50_tau = if (!is.null(x)) diff(range(x))/6 else 100,
   prior_d_mu = if (!is.null(x)) diff(range(x))/4 else 0,
   prior_d_tau = if (!is.null(x)) diff(range(x))/4 else 100,
   prior_sigma_x_tau = if (!is.null(x)) stats::sd(x) else 100,
@@ -16,11 +15,11 @@ stage_priors(
 )
 }
 \arguments{
-\item{x, y}{Optional data vectors to set sensible defaults.}
+\item{x}{Optional data vector to set sensible defaults.}
 
-\item{prior_mu_m50_mu}{Mean of the prior on the global m50.}
+\item{prior_m50_mu}{Mean of the prior on the global transition point m50.}
 
-\item{prior_mu_m50_tau}{SD of the prior on the global m50.}
+\item{prior_m50_tau}{SD of the prior on the global transition point m50.}
 
 \item{prior_d_mu}{Mean of the prior on d.}
 

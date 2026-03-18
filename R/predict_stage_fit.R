@@ -41,7 +41,7 @@ predict.stage_fit <- function(object, newdata, group = NULL,
 
   # cmdstanr::summary() output: columns include "variable", "mean", ...
   summ <- object$fit$summary(
-    variables = c("mu_m50", "m50_pop", "d", "sigma_x")
+    variables = c("m50", "m50_pop", "d", "sigma_x")
   )
 
   # Convenience helper to grab means by variable name
@@ -61,28 +61,27 @@ predict.stage_fit <- function(object, newdata, group = NULL,
   lp1 <- numeric(N_new)
 
   if (J == 1L) {
-    # Single-population model: use global mu_m50
-    m50 <- get_mean("mu_m50")
-    mu0 <- m50 - d / 2
-    mu1 <- m50 + d / 2
+    # Single-population model
+    m50_val <- get_mean("m50")
+    mu0 <- m50_val - d / 2
+    mu1 <- m50_val + d / 2
 
-    C0 <- .uniform_gaussian_normalising_constant(mu0 - L, sigma_x)
-    C1 <- .uniform_gaussian_normalising_constant(U - mu1, sigma_x)
-
-    lp0 <- .uniform_left_gaussian_log_density_unnormalised(x_new, mu0, sigma_x, L) - log(C0)
-    lp1 <- .uniform_right_gaussian_log_density_unnormalised(x_new, mu1, sigma_x, U) - log(C1)
+    # With equal class priors (pi0 = pi1 = 0.5), the normalising constants
+    # cancel in the likelihood ratio, so unnormalised log-densities suffice.
+    lp0 <- .uniform_left_gaussian_log_density_unnormalised(x_new, mu0, sigma_x, L)
+    lp1 <- .uniform_right_gaussian_log_density_unnormalised(x_new, mu1, sigma_x, U)
 
   } else {
     # Multi-population model: need a population index for each new x
     if (is.null(group)) {
       pop_new <- rep(1L, N_new)
     } else {
-      pop_new <- as.integer(as.factor(group))
+      pop_new <- as.integer(factor(group, levels = object$group_levels))
       if (length(pop_new) == 1L && N_new > 1L) {
         pop_new <- rep(pop_new, N_new)
       }
       if (length(pop_new) != N_new) {
-        stop("Length of `group` must be 1 or length(newdata).")
+        cli::cli_abort("Length of {.arg group} must be 1 or {.code length(newdata)}.")
       }
     }
 
@@ -94,20 +93,20 @@ predict.stage_fit <- function(object, newdata, group = NULL,
       mu0_j <- m50_j - d / 2
       mu1_j <- m50_j + d / 2
 
-      C0_j <- .uniform_gaussian_normalising_constant(mu0_j - L, sigma_x)
-      C1_j <- .uniform_gaussian_normalising_constant(U - mu1_j, sigma_x)
-
+      # With equal class priors, normalising constants cancel in the ratio.
       lp0[idx] <- .uniform_left_gaussian_log_density_unnormalised(
         x_new[idx], mu0_j, sigma_x, L
-      ) - log(C0_j)
+      )
 
       lp1[idx] <- .uniform_right_gaussian_log_density_unnormalised(
         x_new[idx], mu1_j, sigma_x, U
-      ) - log(C1_j)
+      )
     }
   }
 
-  # Convert log-densities to probabilities via 2-class softmax
+  # Convert unnormalised log-densities to probabilities via 2-class softmax.
+  # Under equal class priors (pi0 = pi1 = 0.5), the normalising constants
+  # C0 and C1 cancel in the likelihood ratio, so P(y=1|x) = 0.5 exactly at m50.
   max_lp <- pmax(lp0, lp1)
   p1 <- exp(lp1 - max_lp) / (exp(lp0 - max_lp) + exp(lp1 - max_lp))
 

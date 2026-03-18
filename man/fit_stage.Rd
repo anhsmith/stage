@@ -10,7 +10,7 @@ fit_stage(
   group = NULL,
   L = NULL,
   U = NULL,
-  priors = stage_priors(x, y),
+  priors = stage_priors(x),
   chains = 4,
   iter = 2000,
   ...

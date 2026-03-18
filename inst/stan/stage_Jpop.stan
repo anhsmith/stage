@@ -40,8 +40,8 @@ data {
   array[N] int<lower=1, upper=J> pop;     // population index
 
   // prior hyperparameters (passed from R)
-  real prior_mu_m50_mu;
-  real<lower=0> prior_mu_m50_tau;
+  real prior_m50_mu;
+  real<lower=0> prior_m50_tau;
   real prior_d_mu;
   real<lower=0> prior_d_tau;
   real<lower=0> prior_sigma_x_tau;
@@ -49,17 +49,17 @@ data {
 }
 
 parameters {
-  real<lower=L, upper=U> mu_m50;   // global mean transition point
-  real<lower=0> d;                 // distance between mu0 and mu1
+  real<lower=L, upper=U> m50;          // global transition point (where P(y=1|x)=0.5)
+  real<lower=0> d;                     // distance between mu0 and mu1
 
-  vector[J] z;                     // non-centred group effects on m50
+  vector[J] z;                         // non-centred group effects on m50
 
-  real<lower=0> sigma_x;           // SD of x around group transition
-  real<lower=0> sigma_alpha;       // SD of population effects on m50
+  real<lower=0> sigma_x;              // SD of x around group transition
+  real<lower=0> sigma_alpha;          // SD of population effects on m50
 }
 
 transformed parameters {
-  vector[J] alpha;     // population deviations
+  vector[J] alpha;      // population deviations
   vector[J] m50_pop;   // population-specific transition points
   vector[J] mu0_pop;   // lower (immature) Gaussian means
   vector[J] mu1_pop;   // upper (mature) Gaussian means
@@ -67,19 +67,19 @@ transformed parameters {
   vector[J] C1_pop;    // normalising constants for y=1 class
 
   for (j in 1:J) {
-    alpha[j]   = z[j] * sigma_alpha;        // non-centred
-    m50_pop[j] = mu_m50 + alpha[j];
-    mu0_pop[j] = m50_pop[j] - d / 2;
-    mu1_pop[j] = m50_pop[j] + d / 2;
+    alpha[j]    = z[j] * sigma_alpha;        // non-centred
+    m50_pop[j]  = m50 + alpha[j];
+    mu0_pop[j]  = m50_pop[j] - d / 2;
+    mu1_pop[j]  = m50_pop[j] + d / 2;
 
-    C0_pop[j] = uniform_gaussian_normalising_constant(mu0_pop[j] - L, sigma_x);
-    C1_pop[j] = uniform_gaussian_normalising_constant(U - mu1_pop[j], sigma_x);
+    C0_pop[j] = uniform_gaussian_normalising_constant(fmax(mu0_pop[j] - L, 0), sigma_x);
+    C1_pop[j] = uniform_gaussian_normalising_constant(fmax(U - mu1_pop[j], 0), sigma_x);
   }
 }
 
 model {
   // Priors
-  mu_m50      ~ normal(prior_mu_m50_mu, prior_mu_m50_tau);
+  m50         ~ normal(prior_m50_mu, prior_m50_tau);
   d           ~ normal(prior_d_mu, prior_d_tau);
   sigma_x     ~ normal(0, prior_sigma_x_tau);
   sigma_alpha ~ normal(0, prior_sigma_alpha_tau);

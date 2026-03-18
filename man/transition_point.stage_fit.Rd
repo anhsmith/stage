@@ -15,8 +15,13 @@ If \code{NULL}, return global and all populations.}
 \item{...}{Currently ignored. Included for method compatibility.}
 }
 \value{
-A named list or numeric vector with posterior summary stats.
+A named list. Always contains \code{global} (posterior summary of the
+global \code{m50}). For J > 1 models, also contains \code{pop1}, \code{pop2}, etc. for
+each population-specific transition point. Each summary is a named numeric
+vector with \code{mean}, \code{median}, \code{q2.5}, \code{q97.5}.
 }
 \description{
-Posterior summaries of STAGE transition points (m50)
+Returns posterior summaries of \eqn{m_{50}}, the value of \eqn{x} where
+\eqn{P(y=1 | x) = 0.5}. Under equal class priors, \eqn{m_{50}} is the
+direct sampling parameter of the STAGE model.
 }

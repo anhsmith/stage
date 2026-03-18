@@ -16,7 +16,7 @@ fit_stage <- function(
     group   = NULL,
     L = NULL,
     U = NULL,
-    priors  = stage_priors(x, y),
+    priors  = stage_priors(x),
     chains  = 4,
     iter    = 2000,
     ...
@@ -45,12 +45,14 @@ fit_stage <- function(
 
   # Group / populations
   if (is.null(group)) {
-    pop <- rep(1L, N)
-    J   <- 1L
+    pop          <- rep(1L, N)
+    J            <- 1L
+    group_levels <- character(0)
   } else {
-    pop_f <- as.factor(group)
-    pop   <- as.integer(pop_f)
-    J     <- length(levels(pop_f))
+    pop_f        <- as.factor(group)
+    pop          <- as.integer(pop_f)
+    J            <- length(levels(pop_f))
+    group_levels <- levels(pop_f)
   }
 
   # Build Stan data list: all arguments explicit
@@ -64,7 +66,7 @@ fit_stage <- function(
       y   = y,
       pop = pop
     ),
-    priors   # adds prior_mu_m50_mu, prior_mu_m50_tau, etc.
+    priors   # adds prior_m50_mu, prior_m50_tau, etc.
   )
 
   mod <- get_cmdstan_model("stage_Jpop.stan")
@@ -77,9 +79,10 @@ fit_stage <- function(
   )
 
   out <- list(
-    fit   = fit,
-    data  = data_list,
-    call  = match.call()
+    fit          = fit,
+    data         = data_list,
+    group_levels = group_levels,
+    call         = match.call()
   )
   class(out) <- "stage_fit"
   out

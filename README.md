@@ -16,7 +16,7 @@ Features of the STAGE model are:
 - Each class is fit with a mixture distribution that combines a
   **uniform plateau** with a **Gaussian tail**
 - Estimation of the transition point (**m50**) is based on the
-  **relative densities** (Bayes’ rule) of the classes given $x$, not
+  **relative densities** (Bayes' rule) of the classes given $x$, not
   discriminative regression
 - A **shared transition region** centred at **m50** with width **d**.
 
@@ -36,18 +36,18 @@ underway.
 
 # Package features
 
-- `fit_stage()` — fit STAGE model (single or multi-population)  
-- `transition_point()` — summarise posteriors for ***m50***  
-- `predict.stage_fit()` — predict class probabilities or labels  
-- `stage_priors()` — prior helper  
+- `fit_stage()` — fit STAGE model (single or multi-population)
+- `transition_point()` — summarise posteriors for ***m50***
+- `predict.stage_fit()` — predict class probabilities or labels
+- `stage_priors()` — prior helper
 - `get_cmdstan_model()` — internal CmdStan compiler helper
 
 Planned additions:
 
-- Reparameterised logistic/HOF model  
-- Bayesian LDA  
-- Posterior predictive classification  
-- Diagnostic + visualisation tools  
+- Reparameterised logistic/HOF model
+- Bayesian LDA
+- Posterior predictive classification
+- Diagnostic + visualisation tools
 - Full vignette
 
 ------------------------------------------------------------------------
@@ -126,24 +126,24 @@ transition_point(fit2)
 
 This returns:
 
-- global m50  
-- group-specific m50_pop\[j\]
+- global transition point `m50`
+- population-specific transition points `m50_pop[j]`
 
 ------------------------------------------------------------------------
 
 # **Model summary**
 
-Each class is a **uniform plateau** with a **Gaussian edge**.  
+Each class is a **uniform plateau** with a **Gaussian edge**.
 Key parameters:
 
-- `m50` — transition centre  
-- `d` — width of transition region  
+- `m50` — transition point where P(y=1\|x) = 0.5 (direct sampling parameter)
+- `d` — width of transition region
 - `sigma_x` — Gaussian spread
 
 Hierarchical structure:
 
 ``` md
-m50_pop[j] = mu_m50 + z[j] * sigma_alpha
+m50_pop[j] = m50 + z[j] * sigma_alpha
 ```
 
 (non-centred parameterisation for efficient sampling)

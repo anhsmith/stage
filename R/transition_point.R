@@ -11,22 +11,28 @@ transition_point <- function(object, ...) {
 
 #' Posterior summaries of STAGE transition points (m50)
 #'
+#' Returns posterior summaries of \eqn{m_{50}}, the value of \eqn{x} where
+#' \eqn{P(y=1 | x) = 0.5}. Under equal class priors, \eqn{m_{50}} is the
+#' direct sampling parameter of the STAGE model.
+#'
 #' @param object A `stage_fit` object as returned by [fit_stage()].
 #' @param population Optional population index (integer) or label (character).
 #'   If `NULL`, return global and all populations.
 #' @param ... Currently ignored. Included for method compatibility.
 #'
-#' @return A named list or numeric vector with posterior summary stats.
+#' @return A named list. Always contains `global` (posterior summary of the
+#'   global `m50`). For J > 1 models, also contains `pop1`, `pop2`, etc. for
+#'   each population-specific transition point. Each summary is a named numeric
+#'   vector with `mean`, `median`, `q2.5`, `q97.5`.
 #' @export
 transition_point.stage_fit <- function(object, population = NULL, ...) {
-  draws <- object$fit$draws(
-    variables = c("mu_m50", "m50_pop"),
-    format    = "draws_df"
-  )
-
   J <- object$data$J
 
-  # helper
+  draws <- object$fit$draws(
+    variables = c("m50", "m50_pop"),
+    format = "draws_df"
+  )
+
   posterior_summary <- function(z) {
     c(
       mean   = mean(z),
@@ -36,29 +42,27 @@ transition_point.stage_fit <- function(object, population = NULL, ...) {
     )
   }
 
-  # global only (or no populations in model)
-  if (J == 1L && is.null(population)) {
-    return(posterior_summary(draws$mu_m50))
-  }
-
-  # specific population requested?
+  # specific population requested
   if (!is.null(population)) {
     if (is.character(population)) {
-      # if you later store the group levels, you can map label -> index here
-      stop("Character population labels not yet implemented; use integer index.")
+      cli::cli_abort("Character population labels not yet implemented; use integer index.")
     }
     j <- as.integer(population)
-    colname <- paste0("m50_pop[", j, "]")
-    return(posterior_summary(draws[[colname]]))
+    if (J == 1L) {
+      return(list(global = posterior_summary(draws$m50)))
+    }
+    return(list(
+      global = posterior_summary(draws$m50),
+      pop    = posterior_summary(draws[[paste0("m50_pop[", j, "]")]])
+    ))
   }
 
-  # otherwise: global + all populations
-  out <- list(
-    global = posterior_summary(draws$mu_m50)
-  )
-  for (j in 1:J) {
-    colname <- paste0("m50_pop[", j, "]")
-    out[[paste0("pop", j)]] <- posterior_summary(draws[[colname]])
+  # No population specified: global + all populations (J > 1)
+  out <- list(global = posterior_summary(draws$m50))
+  if (J > 1L) {
+    for (j in seq_len(J)) {
+      out[[paste0("pop", j)]] <- posterior_summary(draws[[paste0("m50_pop[", j, "]")]])
+    }
   }
   out
 }

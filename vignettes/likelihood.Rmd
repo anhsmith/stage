@@ -15,7 +15,10 @@ knitr::opts_chunk$set(
 )
 
 library(stage)
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tibble)
+library(tidyr)
 ```
 
 # Overview
@@ -25,33 +28,33 @@ This vignette describes the **likelihood and parameterisation** used in the STAG
 STAGE is a **hierarchical Bayesian generative model** designed to estimate a
 **transition point** \(m_{50}\) on variable \(x\) between two classes—for example, the length at which individuals
 transition from immature to mature. The model produces a posterior
-distribution for key parameter \(m_{50}\), representing the value of \(x\) at which the probabilities \(\Pr(y=0)\) and \(\Pr(y=1)\) are equal. 
+distribution for \(m_{50}\), representing the value of \(x\) at which the probabilities \(\Pr(y=0)\) and \(\Pr(y=1)\) are equal.
 The model can also be used to derive other useful quantities (such as class probabilities
 \(\Pr(y = 1 \mid x)\)).
 
 Conceptually, STAGE is a **Bayesian generative classifier** for estimating a transition point (e.g. length at maturity). Each class is fit with an asymmetric **plateau–Gaussian** density:
 
-- the lower class has a **uniform plateau** followed by a **Gaussian tail down into the transition**,  
+- the lower class has a **uniform plateau** followed by a **Gaussian tail down into the transition**,
 - the higher class has a **Gaussian tail up out of the transition** followed by a **uniform plateau**.
 
 ```{r visualize, fig.width=6, fig.height=4, echo=FALSE}
 # parameters for the illustration
-L      <- 1000
-U      <- 1700
-sigma  <- 120
-m50    <- 1350           # mid point
-d      <- 300            # separation
-mu0    <- m50 - d/2      # 1200
-mu1    <- m50 + d/2      # 1500
+L    <- 1000
+U    <- 1700
+sigma <- 120
+m50  <- 1350          # transition point (direct sampling parameter)
+d    <- 300            # separation
+mu0  <- m50 - d/2      # 1200
+mu1  <- m50 + d/2      # 1500
 
-pdat <- tibble(x = L:U) |> 
-  rowwise() |> 
+pdat <- tibble(x = L:U) |>
+  rowwise() |>
   mutate(
     `y=0` = plateau_gaussian_density_left(
       x, mu = mu0, sigma = sigma, L = L),
     `y=1` = plateau_gaussian_density_right(
       x, mu = mu1, sigma = sigma, U = U)
-  ) |> 
+  ) |>
   ungroup() |>
   pivot_longer(
     cols = c(`y=0`, `y=1`),
@@ -69,10 +72,10 @@ p <- ggplot(pdat) +
 p
 ```
 
-This construction focuses inference on the **overlap region** and prevents distant observations 
+This construction focuses inference on the **overlap region** and prevents distant observations
 (e.g. very small immatures, very large matures) from unduly influencing the transition point.
 
-The central idea is to model each class with a **piecewise density** that combines a **uniform plateau** in regions far from the transition, and a **Gaussian tail** in the transition region. The left group (\(y = 0\)) is modelled with a uniform on the left that begins at the lower truncation value \(L\). The distribution remains flat until it approaches the transition range, at which point the distribution declines according to a Gaussian. The right group (\(y = 1\)) is a mirror image of the left—it increases according to a Gaussian distribution and then levels off to a uniform, terminating at the upper truncation value \(U\). 
+The central idea is to model each class with a **piecewise density** that combines a **uniform plateau** in regions far from the transition, and a **Gaussian tail** in the transition region. The left group (\(y = 0\)) is modelled with a uniform on the left that begins at the lower truncation value \(L\). The distribution remains flat until it approaches the transition range, at which point the distribution declines according to a Gaussian. The right group (\(y = 1\)) is a mirror image of the left—it increases according to a Gaussian distribution and then levels off to a uniform, terminating at the upper truncation value \(U\).
 
 The model focuses inference on the **transition zone**, where the values of \(x\) of the two classes overlap, and down-weights observations that are biologically uninformative because they are far away from the transition point.
 
@@ -83,7 +86,7 @@ The uniform–Gaussian pdf used here is adapted from a plateau proposal distribu
 We observe pairs \((x_i, y_i)\) for \(i = 1, \dots, N\), where
 
 - \(x_i\) is a continuous covariate (e.g., length), truncated to an interval
-  \([L, U]\), and  
+  \([L, U]\), and
 - \(y_i \in \{0, 1\}\) is a binary indicator of state (e.g., immature / mature).
 
 The model assumes that the distribution of \(x\) conditional on state is **piecewise**:
@@ -93,8 +96,8 @@ The model assumes that the distribution of \(x\) conditional on state is **piece
 - For \(y = 1\) (mature individuals), the distribution is **Gaussian** below a point
   \(\mu_1\), and **uniform** above \(\mu_1\) up to the upper truncation \(U\).
 
-The **transition point** \(m_{50}\) is defined as the value of \(x\) where the
-probability of observing either class is equal:
+The **transition point** \(m_{50}\) is the value of \(x\) where the probability of
+observing either class is equal:
 
 \[
 \Pr(y = 0 \mid x = m_{50}) = \Pr(y = 1 \mid x = m_{50}).
@@ -107,13 +110,13 @@ Additional parameters govern the **width** and **sharpness** of the transition:
 - \(\sigma\) (denoted `sigma_x` in the Stan code) controls the spread (standard
   deviation) of the Gaussian tails.
 
-By allowing different behaviours on either side of \(m_{50}\), the model can capture
+By allowing different behaviours on either side of the transition, the model can capture
 **asymmetric transition patterns**: the immature class can decline towards the
 transition at a different rate than the mature class rises out of it.
 
 This is particularly useful in settings where:
 
-- the boundary between classes is **not sharp**, and  
+- the boundary between classes is **not sharp**, and
 - the data exhibit **gradual overlap** between the two classes.
 
 # Likelihood
@@ -163,11 +166,11 @@ For \(y_i = 1\), the unnormalised log-density is
 
 Now:
 
-- the Gaussian tail is **below** \(\mu_1\), and  
+- the Gaussian tail is **below** \(\mu_1\), and
 - the plateau covers the upper region \([\mu_1, U]\).
 
 In both cases we have a **plateau–Gaussian** shape: a flat density where the class
-“dominates” and a Gaussian tail in the transition region where the other class is
+"dominates" and a Gaussian tail in the transition region where the other class is
 present.
 
 ## Normalisation constants
@@ -182,7 +185,7 @@ For the immature class (\(y = 0\)):
 C_0
 = \int_L^{\mu_0} 1 \, dx
   + \int_{\mu_0}^{\infty}
-    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+    \exp\!\left(
       -\frac{(x - \mu_0)^2}{2\sigma^2}
     \right) dx
 = (\mu_0 - L) + \frac{\sqrt{2\pi}\,\sigma}{2}.
@@ -193,7 +196,7 @@ For the mature class (\(y = 1\)):
 \[
 C_1
 = \int_{-\infty}^{\mu_1}
-    \frac{1}{\sqrt{2\pi}\sigma} \exp\!\left(
+    \exp\!\left(
       -\frac{(x - \mu_1)^2}{2\sigma^2}
     \right) dx
   + \int_{\mu_1}^{U} 1 \, dx
@@ -202,7 +205,7 @@ C_1
 
 Intuitively:
 
-- \((\mu_0 - L)\) and \((U - \mu_1)\) are the **widths of the uniform plateaus**,  
+- \((\mu_0 - L)\) and \((U - \mu_1)\) are the **widths of the uniform plateaus**,
 - \(\sqrt{2\pi}\,\sigma / 2\) is the **contribution from the half-Gaussian tail**.
 
 The corresponding **log-likelihood contribution** for observation \(i\) is
@@ -237,13 +240,13 @@ that should be adapted to the scale of the data and prior biological knowledge.
 
 By default, STAGE uses weakly informative normal priors:
 
-- **Transition point** \(m_{50}\):
+- **Transition point** \(m_{50}\) (Stan parameter `m50`):
 
 \[
 m_{50} \sim \mathcal{N}(1300, 50),
 \]
 
-which centres the transition around 1300 (mm) with moderate uncertainty.
+which centres the transition point around 1300 (mm) with moderate uncertainty.
 
 - **Transition width** \(d\):
 
@@ -262,13 +265,17 @@ spread. Note that \(d\) is the distance between the class-specific Gaussian cent
 
 representing prior beliefs about the scale of variability in the transition tails.
 
+Because \(d\) and `sigma_x` are constrained to be positive in the Stan model,
+their Normal priors are effectively **half-Normal** distributions (the prior mass
+below zero is folded onto the positive half).
+
 In practice, you should adapt these priors to your scale (e.g., lengths, ages)
 and prior biological knowledge. The STAGE implementation allows you to pass in
 hyperparameters via helper functions such as `stage_priors()`.
 
 # Transformed parameters
 
-The Gaussian “centres” for the two classes are defined in terms of the transition
+The Gaussian "centres" for the two classes are defined in terms of the transition
 point \(m_{50}\) and the width parameter \(d\):
 
 \[
@@ -278,21 +285,17 @@ point \(m_{50}\) and the width parameter \(d\):
 
 Thus:
 
-- \(d\) controls the **distance** between the immature and mature Gaussian means,  
-- \(m_{50}\) remains the **midpoint** between them.
-
-This is convenient both conceptually and computationally: it allows the model to
-focus directly on \(m_{50}\) and \(d\), which are often the primary scientific
-targets, while \(\mu_0\) and \(\mu_1\) are derived quantities.
+- \(d\) controls the **distance** between the immature and mature Gaussian means,
+- \(m_{50}\) is the **midpoint** between them.
 
 # From class densities to class probabilities (Bayes rule)
 
-The likelihood above defines the **class-conditional densities**  
+The likelihood above defines the **class-conditional densities**
 \(f_0(x) = p(x \mid y = 0)\) and \(f_1(x) = p(x \mid y = 1)\) on \([L, U]\), obtained
 by normalising the unnormalised densities \(\tilde f_k(x) = \exp\{\ell_k(x)\}\) with
 the constants \(C_k\).
 
-To obtain the probability that an individual with a particular \(x\) value is 
+To obtain the probability that an individual with a particular \(x\) value is
 in the higher class (\(y = 1\)), we use Bayes rule:
 
 \[
@@ -307,11 +310,11 @@ and similarly
 = \frac{\pi_0 f_0(x)}{\pi_0 f_0(x) + \pi_1 f_1(x)},
 \]
 
-where \(\pi_0\) and \(\pi_1\) are the prior class probabilities  
+where \(\pi_0\) and \(\pi_1\) are the prior class probabilities
 (e.g., prior probabilities of being immature or mature *before* seeing \(x\)).
 
 In many applications, such as estimating length-at-maturity,
-we are interested in a transition point that is 
+we are interested in a transition point that is
 **not driven by sample sizes or prevalence**, so it is natural to use
 **equal class priors**, \(\pi_0 = \pi_1 = 1/2\). In that case, Bayes rule
 simplifies to
@@ -338,30 +341,26 @@ two classes are equally probable:
 Using Bayes rule with equal class priors, this equality is equivalent to
 
 \[
-\frac{f_1(m_{50})}{f_0(m_{50}) + f_1(m_{50})}
-=
-\frac{f_0(m_{50})}{f_0(m_{50}) + f_1(m_{50})}
-\quad\Longleftrightarrow\quad
-f_0(m_{50}) = f_1(m_{50}).
+f_0(m_{50}) = f_1(m_{50}),
 \]
 
-Thus, \(m_{50}\) can be viewed in two equivalent ways:
+i.e. the two normalised class densities are equal at \(m_{50}\).
 
-1. As a **model parameter** that sets the midpoint between the Gaussian centres
-   \(\mu_0\) and \(\mu_1\) via  
-   \[
-   \mu_0 = m_{50} - \frac{d}{2}, \qquad
-   \mu_1 = m_{50} + \frac{d}{2},
-   \]
-2. As the **Bayes-optimal classifier cut-point** where the posterior class probabilities
-   for immature and mature are both 0.5.
+**Why \(m_{50}\) is the midpoint between \(\mu_0\) and \(\mu_1\).**
+In the transition region (\(\mu_0 < x < \mu_1\)), both unnormalised densities
+take Gaussian form:
 
-In practice, the STAGE model samples \(m_{50}\), \(d\), and \(\sigma\) from their
-posterior distribution. For any posterior draw, we can compute
-\(\Pr(y = 1 \mid x)\) via Bayes rule and verify that the point where this curve
-crosses 0.5 aligns with the sampled value of \(m_{50}\). This makes the
-interpretation of \(m_{50}\) as a “50% maturity” transition point directly linked
-to the underlying generative model and Bayes-optimal classifier.
+\[
+\tilde f_0(x) = \exp\!\left(-\frac{(x - \mu_0)^2}{2\sigma^2}\right), \qquad
+\tilde f_1(x) = \exp\!\left(-\frac{(x - \mu_1)^2}{2\sigma^2}\right).
+\]
+
+Since both Gaussians share the same \(\sigma\), the unnormalised densities are
+equal at the arithmetic midpoint \(x^* = (\mu_0 + \mu_1)/2 = m_{50}\). With equal
+class priors, the normalising constants \(C_0\) and \(C_1\) cancel in the
+likelihood ratio, so the 50% crossing point is exactly \(m_{50}\) regardless of
+the survey bounds \(L\) and \(U\). This is the key invariance property: changing
+the sampling domain does not shift the estimated transition point.
 
 ## Visualising a single STAGE transition
 
@@ -394,7 +393,7 @@ p +
   geom_segment(aes(x = mu1, xend = mu1, y = 0, yend = maxd),
                linetype = 2, colour = "#F8766D") +
   geom_segment(aes(x = m50, xend = m50, y = 0, yend = maxd),
-               linetype = 2, colour = "black") +
+               linetype = 1, colour = "black") +
   geom_vline(xintercept = L, linetype = 3, alpha = 0.3) +
   geom_vline(xintercept = U, linetype = 3, alpha = 0.3) +
 
@@ -419,22 +418,21 @@ p +
            label = "d", vjust = 0, hjust = 0)
 ```
 
-
 # Relationship to the `stage` implementation
 
 In the `stage` package:
 
-- The single-population model uses parameters
-  `m50`, `d`, and `sigma_x` that correspond to \(m_{50}\), \(d\), and \(\sigma\)
-  in this vignette.
+- The single-population model directly samples `m50` (\(m_{50}\)), `d`, and
+  `sigma_x` (\(\sigma\)). The transition point is a primary sampling parameter,
+  not a derived quantity.
 - The multi-population (hierarchical) model introduces population-specific
-  transition points \(m_{50, j}\) via a random-effects structure:
+  transition points via a random-effects structure:
   \[
-  m50_{\text{pop}[j]} = \mu_{m50} + z_j \, \sigma_\alpha,
+  \texttt{m50\_pop}[j] = m_{50} + z_j \, \sigma_\alpha,
   \]
-  where \(\mu_{m50}\) is the overall mean transition point, \(z_j\) are
-  standard-normal effects, and \(\sigma_\alpha\) is the population-level
-  standard deviation.
+  where \(m_{50}\) is the global mean transition point, \(z_j\) are
+  standard-normal effects, and \(\sigma_\alpha\) is the population-level standard
+  deviation.
 
 The Stan code used in `fit_stage()` is a direct implementation of the likelihood
 and parameterisation described above.

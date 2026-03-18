@@ -8,3 +8,6 @@ inst/doc
 /doc/
 /Meta/
 docs
+CLAUDE.md
+stage_fix_prompt.md
+.claude/

@@ -1,4 +1,6 @@
 ^stage\.Rproj$
+^\.claude$
+^CLAUDE\.md$
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^LICENSE\.md$
