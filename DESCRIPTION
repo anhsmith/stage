@@ -31,4 +31,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Config/Needs/website: pkgdown, knitr, rmarkdown, cmdstanr
+Config/Needs/website: pkgdown, knitr, rmarkdown
