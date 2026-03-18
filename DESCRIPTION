@@ -23,7 +23,6 @@ Imports:
     cli,
     stats
 Suggests:
-    cmdstanr,
     testthat,
     ggplot2,
     dplyr,
